@@ -1,0 +1,774 @@
+{
+  "startedAt": "2026-06-02T16:53:08.452Z",
+  "completedAt": "2026-06-02T16:54:33.354Z",
+  "baseUrl": "http://localhost:3000",
+  "promptResults": [
+    {
+      "id": 1,
+      "category": "standard",
+      "prompt": "Build a CRM for a real estate agency. Agents manage leads, properties, and deals. Admin sees analytics. WhatsApp notifications when a deal closes.",
+      "promptShort": "Build a CRM for a real estate agency. Agents manage leads, properties, and deals",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 7291,
+      "latencyByStage": {
+        "intent": 1224,
+        "schema": 3062,
+        "appSpec": 2612
+      },
+      "estimatedTokenCost": 0.027331,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 37,
+          "outputTokens": 69,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 69,
+          "outputTokens": 1521,
+          "estimatedUsd": 0.015383
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1521,
+          "outputTokens": 2008,
+          "estimatedUsd": 0.011941
+        }
+      ],
+      "expectedIntegrations": [
+        "whatsapp"
+      ],
+      "detectedIntegrations": [
+        "whatsapp"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 6,
+      "pageCount": 14,
+      "endpointCount": 30,
+      "workflowCount": 1
+    },
+    {
+      "id": 2,
+      "category": "standard",
+      "prompt": "Task manager for an engineering team. Tasks have due dates, assignees, priorities, and status. Team lead gets a Slack message when a task is overdue.",
+      "promptShort": "Task manager for an engineering team. Tasks have due dates, assignees, prioritie",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 6197,
+      "latencyByStage": {
+        "intent": 495,
+        "schema": 2894,
+        "appSpec": 2577
+      },
+      "estimatedTokenCost": 0.026323,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 38,
+          "outputTokens": 65,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 65,
+          "outputTokens": 1439,
+          "estimatedUsd": 0.014552
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1439,
+          "outputTokens": 1993,
+          "estimatedUsd": 0.011764
+        }
+      ],
+      "expectedIntegrations": [
+        "slack"
+      ],
+      "detectedIntegrations": [
+        "slack"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 6,
+      "pageCount": 14,
+      "endpointCount": 30,
+      "workflowCount": 1
+    },
+    {
+      "id": 3,
+      "category": "standard",
+      "prompt": "Inventory system for a warehouse. Products, stock movements, suppliers. Low stock triggers an email alert.",
+      "promptShort": "Inventory system for a warehouse. Products, stock movements, suppliers. Low stoc",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 6030,
+      "latencyByStage": {
+        "intent": 347,
+        "schema": 2635,
+        "appSpec": 2947
+      },
+      "estimatedTokenCost": 0.026987999999999998,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 27,
+          "outputTokens": 70,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 70,
+          "outputTokens": 1461,
+          "estimatedUsd": 0.014785
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1461,
+          "outputTokens": 2074,
+          "estimatedUsd": 0.012196
+        }
+      ],
+      "expectedIntegrations": [
+        "gmail"
+      ],
+      "detectedIntegrations": [
+        "gmail"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 6,
+      "pageCount": 14,
+      "endpointCount": 30,
+      "workflowCount": 1
+    },
+    {
+      "id": 4,
+      "category": "standard",
+      "prompt": "HR tool for a 50-person company. Track employees, leave requests, and performance reviews. Notify manager on Slack when leave is approved.",
+      "promptShort": "HR tool for a 50-person company. Track employees, leave requests, and performanc",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 5717,
+      "latencyByStage": {
+        "intent": 337,
+        "schema": 2772,
+        "appSpec": 2514
+      },
+      "estimatedTokenCost": 0.018976,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 35,
+          "outputTokens": 60,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 60,
+          "outputTokens": 983,
+          "estimatedUsd": 0.00998
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 983,
+          "outputTokens": 1552,
+          "estimatedUsd": 0.008989
+        }
+      ],
+      "expectedIntegrations": [
+        "slack"
+      ],
+      "detectedIntegrations": [
+        "slack"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 4,
+      "pageCount": 10,
+      "endpointCount": 20,
+      "workflowCount": 1
+    },
+    {
+      "id": 5,
+      "category": "standard",
+      "prompt": "E-commerce backend. Products, orders, customers, payments via Stripe. Order confirmation sent via Gmail.",
+      "promptShort": "E-commerce backend. Products, orders, customers, payments via Stripe. Order conf",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 6237,
+      "latencyByStage": {
+        "intent": 715,
+        "schema": 2745,
+        "appSpec": 2640
+      },
+      "estimatedTokenCost": 0.022683000000000002,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 26,
+          "outputTokens": 65,
+          "estimatedUsd": 0.000006
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 65,
+          "outputTokens": 1184,
+          "estimatedUsd": 0.012002
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1184,
+          "outputTokens": 1839,
+          "estimatedUsd": 0.010675
+        }
+      ],
+      "expectedIntegrations": [
+        "stripe",
+        "gmail"
+      ],
+      "detectedIntegrations": [
+        "gmail",
+        "stripe"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 5,
+      "pageCount": 12,
+      "endpointCount": 25,
+      "workflowCount": 2
+    },
+    {
+      "id": 6,
+      "category": "standard",
+      "prompt": "Event management platform. Organizers create events, attendees register, QR check-in at the door. Confirmation via WhatsApp.",
+      "promptShort": "Event management platform. Organizers create events, attendees register, QR chec",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 8628,
+      "latencyByStage": {
+        "intent": 1188,
+        "schema": 3441,
+        "appSpec": 3910
+      },
+      "estimatedTokenCost": 0.021437,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 31,
+          "outputTokens": 60,
+          "estimatedUsd": 0.000006
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 60,
+          "outputTokens": 1117,
+          "estimatedUsd": 0.01132
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1117,
+          "outputTokens": 1743,
+          "estimatedUsd": 0.010111
+        }
+      ],
+      "expectedIntegrations": [
+        "whatsapp"
+      ],
+      "detectedIntegrations": [
+        "whatsapp"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 5,
+      "pageCount": 12,
+      "endpointCount": 25,
+      "workflowCount": 1
+    },
+    {
+      "id": 7,
+      "category": "standard",
+      "prompt": "Project tracker. Projects, milestones, tasks. Sync tasks to Jira. Update a Google Sheet with weekly progress.",
+      "promptShort": "Project tracker. Projects, milestones, tasks. Sync tasks to Jira. Update a Googl",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 6615,
+      "latencyByStage": {
+        "intent": 622,
+        "schema": 3123,
+        "appSpec": 2743
+      },
+      "estimatedTokenCost": 0.020593,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 28,
+          "outputTokens": 64,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 64,
+          "outputTokens": 1129,
+          "estimatedUsd": 0.01145
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1129,
+          "outputTokens": 1545,
+          "estimatedUsd": 0.009136
+        }
+      ],
+      "expectedIntegrations": [
+        "jira",
+        "google_sheets"
+      ],
+      "detectedIntegrations": [
+        "google_sheets",
+        "jira"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [],
+      "validationErrorCount": 0,
+      "entityCount": 4,
+      "pageCount": 10,
+      "endpointCount": 20,
+      "workflowCount": 2
+    },
+    {
+      "id": 8,
+      "category": "edge",
+      "prompt": "An app.",
+      "promptShort": "An app.",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 5932,
+      "latencyByStage": {
+        "intent": 673,
+        "schema": 2536,
+        "appSpec": 2654
+      },
+      "estimatedTokenCost": 0.008126999999999999,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 2,
+          "outputTokens": 68,
+          "estimatedUsd": 0.000006
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 68,
+          "outputTokens": 401,
+          "estimatedUsd": 0.00418
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 401,
+          "outputTokens": 688,
+          "estimatedUsd": 0.003941
+        }
+      ],
+      "expectedIntegrations": [],
+      "detectedIntegrations": [],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [
+        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification."
+      ],
+      "validationErrorCount": 0,
+      "entityCount": 2,
+      "pageCount": 6,
+      "endpointCount": 10,
+      "workflowCount": 0
+    },
+    {
+      "id": 9,
+      "category": "edge",
+      "prompt": "Build something like Notion for doctors.",
+      "promptShort": "Build something like Notion for doctors.",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 6636,
+      "latencyByStage": {
+        "intent": 494,
+        "schema": 2701,
+        "appSpec": 3303
+      },
+      "estimatedTokenCost": 0.015681,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 10,
+          "outputTokens": 85,
+          "estimatedUsd": 0.000007
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 85,
+          "outputTokens": 801,
+          "estimatedUsd": 0.008223
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 801,
+          "outputTokens": 1290,
+          "estimatedUsd": 0.007451
+        }
+      ],
+      "expectedIntegrations": [
+        "notion"
+      ],
+      "detectedIntegrations": [
+        "notion"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [
+        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification."
+      ],
+      "validationErrorCount": 0,
+      "entityCount": 4,
+      "pageCount": 10,
+      "endpointCount": 20,
+      "workflowCount": 0
+    },
+    {
+      "id": 10,
+      "category": "edge",
+      "prompt": "A platform with login, payments, roles, real-time chat, file uploads, native mobile, analytics, and a marketplace.",
+      "promptShort": "A platform with login, payments, roles, real-time chat, file uploads, native mob",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 5879,
+      "latencyByStage": {
+        "intent": 408,
+        "schema": 2660,
+        "appSpec": 2705
+      },
+      "estimatedTokenCost": 0.022219,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 29,
+          "outputTokens": 127,
+          "estimatedUsd": 0.000012
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 127,
+          "outputTokens": 1184,
+          "estimatedUsd": 0.012157
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 1184,
+          "outputTokens": 1714,
+          "estimatedUsd": 0.01005
+        }
+      ],
+      "expectedIntegrations": [
+        "stripe"
+      ],
+      "detectedIntegrations": [
+        "stripe"
+      ],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [
+        "Authentication and role-based permissions are included in the AppSpec, while live auth implementation is out of scope.",
+        "Overscoped platform features are reduced to a web MVP with extensible AppSpec stubs."
+      ],
+      "validationErrorCount": 0,
+      "entityCount": 5,
+      "pageCount": 12,
+      "endpointCount": 25,
+      "workflowCount": 1
+    },
+    {
+      "id": 11,
+      "category": "edge",
+      "prompt": "A CRM but also a project manager but also an invoicing tool.",
+      "promptShort": "A CRM but also a project manager but also an invoicing tool.",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 5813,
+      "latencyByStage": {
+        "intent": 405,
+        "schema": 2665,
+        "appSpec": 2604
+      },
+      "estimatedTokenCost": 0.01693,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 15,
+          "outputTokens": 101,
+          "estimatedUsd": 0.000009
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 101,
+          "outputTokens": 919,
+          "estimatedUsd": 0.009442
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 919,
+          "outputTokens": 1266,
+          "estimatedUsd": 0.007479
+        }
+      ],
+      "expectedIntegrations": [],
+      "detectedIntegrations": [],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [
+        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification.",
+        "Conflicting domains are resolved by using CRM as the primary app type and project tracking as a feature area."
+      ],
+      "validationErrorCount": 0,
+      "entityCount": 4,
+      "pageCount": 10,
+      "endpointCount": 20,
+      "workflowCount": 0
+    },
+    {
+      "id": 12,
+      "category": "edge",
+      "prompt": "Task manager, but make it smart.",
+      "promptShort": "Task manager, but make it smart.",
+      "success": true,
+      "failedStage": null,
+      "repairStrategyUsed": [],
+      "retryCount": 0,
+      "latencyMs": 5975,
+      "latencyByStage": {
+        "intent": 631,
+        "schema": 2609,
+        "appSpec": 2640
+      },
+      "estimatedTokenCost": 0.014048000000000001,
+      "costBreakdown": [
+        {
+          "stage": "intent",
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "inputTokens": 8,
+          "outputTokens": 105,
+          "estimatedUsd": 0.000009
+        },
+        {
+          "stage": "schema",
+          "provider": "openai",
+          "model": "gpt-4o",
+          "inputTokens": 105,
+          "outputTokens": 789,
+          "estimatedUsd": 0.008153
+        },
+        {
+          "stage": "appSpec",
+          "provider": "gemini",
+          "model": "gemini-1.5-pro",
+          "inputTokens": 789,
+          "outputTokens": 980,
+          "estimatedUsd": 0.005886
+        }
+      ],
+      "expectedIntegrations": [],
+      "detectedIntegrations": [],
+      "integrationsCorrectlyDetected": true,
+      "assumptions": [
+        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification.",
+        "Smart features are interpreted as prioritization, reminders, and simple automation suggestions."
+      ],
+      "validationErrorCount": 0,
+      "entityCount": 3,
+      "pageCount": 8,
+      "endpointCount": 15,
+      "workflowCount": 0
+    }
+  ],
+  "malformedRepairChecks": [
+    {
+      "stage": "schema",
+      "errorHint": "missing_tenant_id",
+      "beforeErrorCodes": [
+        "missing_tenant_id"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "field"
+      ],
+      "success": true
+    },
+    {
+      "stage": "schema",
+      "errorHint": "unknown_relation_target",
+      "beforeErrorCodes": [
+        "unknown_relation_target",
+        "missing_inverse_relation"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "consistency",
+        "consistency"
+      ],
+      "success": true
+    },
+    {
+      "stage": "schema",
+      "errorHint": "missing_inverse_relation",
+      "beforeErrorCodes": [
+        "missing_inverse_relation"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "consistency"
+      ],
+      "success": true
+    },
+    {
+      "stage": "appSpec",
+      "errorHint": "page_without_api",
+      "beforeErrorCodes": [
+        "page_without_api",
+        "page_without_api",
+        "page_without_api"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "consistency"
+      ],
+      "success": true
+    },
+    {
+      "stage": "appSpec",
+      "errorHint": "unknown_workflow_action",
+      "beforeErrorCodes": [
+        "unknown_workflow_action"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "consistency"
+      ],
+      "success": true
+    },
+    {
+      "stage": "appSpec",
+      "errorHint": "unknown_workflow_entity",
+      "beforeErrorCodes": [
+        "unknown_workflow_entity"
+      ],
+      "afterErrorCodes": [],
+      "repairStrategies": [
+        "consistency"
+      ],
+      "success": true
+    }
+  ],
+  "summary": {
+    "successCount": 12,
+    "totalPrompts": 12,
+    "successRate": 100,
+    "commonFailureType": "none",
+    "weakestStage": "none",
+    "malformedRepairPassCount": 6,
+    "malformedRepairTotal": 6,
+    "totalEstimatedTokenCost": 0.241336,
+    "averageLatencyMs": 6413,
+    "text": "Evaluation completed on 12 prompts. Success rate was 12/12 (100%). Average latency was 6413 ms and estimated total token cost was $0.241336. Most common failure type: none. Weakest stage: none. Malformed repair fixtures passed 6/6. The next concrete fix is to run the suite with live OpenAI, Groq, and Gemini keys enabled, then tune prompts for any provider-specific validation failures."
+  }
+}
