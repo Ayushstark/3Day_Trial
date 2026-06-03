@@ -402,14 +402,30 @@ function WorkflowStubsPanel({ workflows }: { workflows: AppSpec["workflowStubs"]
 
 function ErrorPanel({ job, latestEvent }: { job: GenerationJob | null; latestEvent?: StageEvent }) {
   const errors = job?.validationErrors ?? latestEvent?.error?.validationErrors ?? [];
+  const eventErrors = (job?.events ?? [])
+    .filter((event) => event.error?.message)
+    .map((event) => ({
+      stage: event.stage,
+      message: event.error?.message ?? ""
+    }));
+  const latestError = latestEvent?.error?.message
+    ? [{ stage: latestEvent.stage, message: latestEvent.error.message }]
+    : [];
+  const visibleEventErrors = eventErrors.length ? eventErrors : latestError;
 
   return (
     <section className="rounded-lg border border-line bg-white p-4">
       <h2 className="text-sm font-semibold text-ink">Error And Repair Panel</h2>
-      {errors.length === 0 ? (
+      {errors.length === 0 && visibleEventErrors.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No validation errors logged yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">
+          {visibleEventErrors.map((error, index) => (
+            <li key={`${error.stage}-${index}`} className="rounded-md border border-danger/30 bg-red-50 p-3 text-sm">
+              <div className="font-medium text-danger">{error.stage} failed</div>
+              <div className="mt-1 break-words text-ink">{error.message}</div>
+            </li>
+          ))}
           {errors.map((error, index) => (
             <li key={`${error.code}-${index}`} className="rounded-md border border-danger/30 bg-red-50 p-3 text-sm">
               <div className="font-medium text-danger">{error.code}</div>
