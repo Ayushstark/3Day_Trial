@@ -32,7 +32,7 @@ const integrationIds = new Set<string>(integrationIdSchema.options);
 
 export const appIntentSchema = z.object({
   appName: z.string().min(2),
-  appType: appTypeSchema,
+  appType: z.preprocess(normalizeAppType, appTypeSchema),
   features: z.array(z.string().min(2)).min(1),
   entities: z.array(z.string().min(2)).min(1),
   integrations_requested: z.preprocess(
@@ -49,6 +49,34 @@ export const appIntentSchema = z.object({
   clarification_required: z.boolean().optional(),
   clarification_question: z.string().optional()
 });
+
+function normalizeAppType(value: unknown): z.infer<typeof appTypeSchema> {
+  const rawType = String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
+
+  if (rawType.includes("crm") || rawType.includes("sales") || rawType.includes("lead")) {
+    return "crm";
+  }
+  if (rawType.includes("project") || rawType.includes("task") || rawType.includes("kanban")) {
+    return "project_management";
+  }
+  if (rawType.includes("commerce") || rawType.includes("shop") || rawType.includes("store") || rawType.includes("marketplace")) {
+    return "ecommerce";
+  }
+  if (rawType.includes("hr") || rawType.includes("employee") || rawType.includes("leave")) {
+    return "hr_tool";
+  }
+  if (rawType.includes("inventory") || rawType.includes("stock") || rawType.includes("warehouse")) {
+    return "inventory";
+  }
+  if (rawType.includes("content") || rawType.includes("cms") || rawType.includes("blog") || rawType.includes("notion")) {
+    return "content_platform";
+  }
+  if (rawType.includes("analytics") || rawType.includes("dashboard") || rawType.includes("reporting")) {
+    return "analytics";
+  }
+
+  return "custom";
+}
 
 export const fieldTypeSchema = z.enum([
   "string",
