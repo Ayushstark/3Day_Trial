@@ -16,63 +16,47 @@ export type AiGatewayResult = {
 type GenerateJsonOptions = {
   primary: ModelRoute;
   fallback: ModelRoute;
+  routes?: ModelRoute[];
   prompt: string;
 };
 
 export async function generateJsonWithGateway(options: GenerateJsonOptions): Promise<AiGatewayResult | null> {
-  const route = chooseLiveRoute(options.primary, options.fallback);
-
-  if (!route) {
+  const routes = chooseLiveRoutes(options.routes ?? [options.primary, options.fallback]);
+  if (routes.length === 0) {
     return null;
   }
 
   const errors: string[] = [];
 
-  try {
-    const text = await callProvider(route, options.prompt);
-    const output = extractJsonObject(text);
-    return {
-      output,
-      provider: route.provider,
-      model: route.model,
-      inputTokens: estimateTokens(options.prompt),
-      outputTokens: estimateTokens(text),
-      usedFallback: route.provider !== options.primary.provider || route.model !== options.primary.model
-    };
-  } catch (error) {
-    errors.push(`${route.provider}/${route.model}: ${error instanceof Error ? error.message : "unknown error"}`);
-    const fallbackRoute = isProviderReady(options.fallback.provider) ? options.fallback : undefined;
-    if (!fallbackRoute || (fallbackRoute.provider === route.provider && fallbackRoute.model === route.model)) {
-      throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
-    }
-
+  for (const route of routes) {
     try {
-      const text = await callProvider(fallbackRoute, options.prompt);
+      const text = await callProvider(route, options.prompt);
       return {
         output: extractJsonObject(text),
-        provider: fallbackRoute.provider,
-        model: fallbackRoute.model,
+        provider: route.provider,
+        model: route.model,
         inputTokens: estimateTokens(options.prompt),
         outputTokens: estimateTokens(text),
-        usedFallback: true
+        usedFallback: route.provider !== options.primary.provider || route.model !== options.primary.model
       };
-    } catch (fallbackError) {
-      errors.push(`${fallbackRoute.provider}/${fallbackRoute.model}: ${fallbackError instanceof Error ? fallbackError.message : "unknown error"}`);
-      throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
+    } catch (error) {
+      errors.push(`${route.provider}/${route.model}: ${error instanceof Error ? error.message : "unknown error"}`);
     }
   }
+
+  throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
 }
 
-function chooseLiveRoute(primary: ModelRoute, fallback: ModelRoute): ModelRoute | null {
-  if (isProviderReady(primary.provider)) {
-    return primary;
-  }
-
-  if (isProviderReady(fallback.provider)) {
-    return fallback;
-  }
-
-  return null;
+function chooseLiveRoutes(routes: ModelRoute[]): ModelRoute[] {
+  const seen = new Set<string>();
+  return routes.filter((route) => {
+    const key = `${route.provider}:${route.model}`;
+    if (seen.has(key) || !isProviderReady(route.provider)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
 }
 
 async function callProvider(route: ModelRoute, prompt: string): Promise<string> {
@@ -87,8 +71,35 @@ async function callProvider(route: ModelRoute, prompt: string): Promise<string> 
       return callGroq(route.model, prompt);
     case "gemini":
       return callGemini(route.model, prompt);
+    case "google_ai":
+      return callGoogleAi(route.model, prompt);
+    case "deepseek":
+      return callOpenAiCompatible({
+        provider: "deepseek",
+        model: route.model,
+        prompt,
+        baseUrl: "https://api.deepseek.com/v1/chat/completions"
+      });
+    case "openrouter":
+      return callOpenAiCompatible({
+        provider: "openrouter",
+        model: route.model,
+        prompt,
+        baseUrl: "https://openrouter.ai/api/v1/chat/completions",
+        extraHeaders: {
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "OneAtlas AppSpec Pipeline"
+        }
+      });
+    case "mistral":
+      return callOpenAiCompatible({
+        provider: "mistral",
+        model: route.model,
+        prompt,
+        baseUrl: "https://api.mistral.ai/v1/chat/completions"
+      });
     default:
-      throw new Error(`${route.provider} is not available in the three-provider live setup`);
+      throw new Error(`${route.provider} does not have a live adapter enabled`);
   }
 }
 
@@ -136,7 +147,7 @@ async function callGroq(model: string, prompt: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`Groq request failed with ${response.status}`);
+    throw new Error(`Groq request failed with ${response.status}: ${await readErrorBody(response)}`);
   }
 
   const json = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
@@ -159,6 +170,67 @@ async function callGemini(model: string, prompt: string): Promise<string> {
   });
   const result = await geminiModel.generateContent(prompt);
   return result.response.text();
+}
+
+async function callGoogleAi(model: string, prompt: string): Promise<string> {
+  const apiKey = getProviderApiKey("google_ai");
+  if (!apiKey) {
+    throw new Error("GOOGLE_AI_API_KEY is missing");
+  }
+
+  const genAi = new GoogleGenerativeAI(apiKey);
+  const geminiModel = genAi.getGenerativeModel({
+    model,
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: "application/json"
+    }
+  });
+  const result = await geminiModel.generateContent(prompt);
+  return result.response.text();
+}
+
+async function callOpenAiCompatible(options: {
+  provider: ProviderId;
+  model: string;
+  prompt: string;
+  baseUrl: string;
+  extraHeaders?: Record<string, string>;
+}): Promise<string> {
+  const apiKey = getProviderApiKey(options.provider);
+  if (!apiKey) {
+    throw new Error(`${AI_PROVIDERS[options.provider].envKey} is missing`);
+  }
+
+  const response = await fetch(options.baseUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      ...options.extraHeaders
+    },
+    body: JSON.stringify({
+      model: options.model,
+      messages: [
+        { role: "system", content: "You generate strict JSON only. No markdown, no prose." },
+        { role: "user", content: options.prompt }
+      ],
+      temperature: 0.1,
+      response_format: { type: "json_object" }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`${options.provider} request failed with ${response.status}: ${await readErrorBody(response)}`);
+  }
+
+  const json = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content ?? "{}";
+}
+
+async function readErrorBody(response: Response): Promise<string> {
+  const text = await response.text().catch(() => "");
+  return text.slice(0, 500);
 }
 
 function estimateTokens(value: string): number {

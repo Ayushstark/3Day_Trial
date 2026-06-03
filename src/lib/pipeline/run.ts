@@ -27,6 +27,7 @@ export async function runIntentStage(jobId: string): Promise<void> {
     const aiResult = await generateJsonWithGateway({
       primary: MODEL_ROUTES.intent.primary,
       fallback: MODEL_ROUTES.intent.fallback,
+      routes: MODEL_ROUTES.intent.routes,
       prompt: buildIntentPrompt(job.prompt)
     });
     const intent = resolveIntentOutput(aiResult?.output, MODEL_ROUTES.intent, job.prompt);
@@ -109,6 +110,7 @@ export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<
     const aiResult = await generateJsonWithGateway({
       primary: MODEL_ROUTES.schema.primary,
       fallback: MODEL_ROUTES.schema.fallback,
+      routes: MODEL_ROUTES.schema.routes,
       prompt: buildSchemaPrompt(intent)
     });
     const generatedSchema = resolveSchemaOutput(aiResult?.output, MODEL_ROUTES.schema, intent);
@@ -193,6 +195,7 @@ export async function runAppSpecStage(jobId: string, intent: AppIntent, dataSche
     const aiResult = await generateJsonWithGateway({
       primary: MODEL_ROUTES.appSpec.primary,
       fallback: MODEL_ROUTES.appSpec.fallback,
+      routes: MODEL_ROUTES.appSpec.routes,
       prompt: buildAppSpecPrompt(intent, dataSchema)
     });
     const generatedAppSpec = resolveAppSpecOutput(aiResult?.output, MODEL_ROUTES.appSpec, intent, dataSchema);
@@ -357,7 +360,7 @@ function resolveAppSpecOutput(output: unknown, route: StageRouteConfig, intent: 
 }
 
 function hasReadyAiRoute(route: StageRouteConfig): boolean {
-  return isProviderReady(route.primary.provider) || isProviderReady(route.fallback.provider);
+  return route.routes.some((candidate) => isProviderReady(candidate.provider));
 }
 
 function unwrapStageOutput(output: unknown, keys: string[]): unknown {

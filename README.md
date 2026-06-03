@@ -6,7 +6,7 @@ Multi-stage AI generation pipeline for the OneAtlas 3-day AI Engineer trial. It 
 2. `DataSchema`
 3. `AppSpec`
 
-The pipeline uses live AI providers when keys are configured, and deterministic generators as fallback when providers are unavailable or return invalid output.
+The pipeline uses ordered live AI provider chains when keys are configured. If one provider fails because of quota, rate limits, model availability, or output errors, the gateway automatically tries the next ready provider for that stage. Deterministic generation is retained only as a baseline when no live route is configured.
 
 ## Quick Start
 
@@ -42,16 +42,16 @@ Live adapters currently implemented:
 - OpenAI
 - Groq
 - Google Gemini
-
-Configurable/stubbed provider options:
-
-- Anthropic
 - Google AI
 - DeepSeek
 - OpenRouter
 - Mistral
 
-The gateway supports all eight providers as config entries, while the live integration minimum is satisfied by OpenAI, Groq, and Gemini.
+Configurable/stubbed provider options:
+
+- Anthropic
+
+The gateway supports all eight providers as config entries. Anthropic remains configurable but inactive until `ANTHROPIC_API_KEY` is supplied and the adapter is enabled.
 
 ## Scripts
 
@@ -89,9 +89,8 @@ Output: `AppIntent` with:
 
 Provider route:
 
-- Primary: Groq `llama-3.1-8b-instant`
-- Fallback: OpenAI `gpt-4o-mini`
-- Deterministic fallback if AI is unavailable or invalid
+- Ordered chain: Groq, OpenAI, Gemini, Google AI, Mistral, DeepSeek, OpenRouter
+- Deterministic fallback if no live route is configured
 
 ### Stage 2: Schema Generation
 
@@ -107,9 +106,8 @@ Output: `DataSchema` with:
 
 Provider route:
 
-- Primary: OpenAI `gpt-4o`
-- Fallback: Gemini `gemini-1.5-pro`
-- Deterministic fallback if AI is unavailable or invalid
+- Ordered chain: OpenAI, Gemini, Google AI, DeepSeek, Mistral, OpenRouter, Groq
+- Deterministic fallback if no live route is configured
 
 ### Stage 3: AppSpec Generation
 
@@ -125,9 +123,8 @@ Output: `AppSpec` with:
 
 Provider route:
 
-- Primary: Gemini `gemini-1.5-pro`
-- Fallback: OpenAI `gpt-4o`
-- Deterministic fallback if AI is unavailable or invalid
+- Ordered chain: Gemini, OpenAI, Google AI, DeepSeek, Mistral, OpenRouter, Groq
+- Deterministic fallback if no live route is configured
 
 ## Validation
 
@@ -216,7 +213,7 @@ evaluation-results.json
 
 - Live OAuth/API calls for third-party integrations are not implemented.
 - Integration actions are metadata stubs suitable for downstream implementation.
-- Provider gateway has live adapters for three providers and config entries for all eight.
+- Provider gateway has live adapters for seven providers and config entries for all eight.
 - Job storage is in-memory for the trial prototype.
 - Deterministic generation remains as a fallback and regression baseline.
 

@@ -43,29 +43,29 @@ export const AI_PROVIDERS: Record<ProviderId, ProviderDescriptor> = {
     id: "google_ai",
     displayName: "Google AI",
     envKey: "GOOGLE_AI_API_KEY",
-    mode: "stub",
-    notes: "Configurable fallback option for Google AI SDK flows."
+    mode: "live",
+    notes: "Live Gemini-compatible adapter through the Google AI SDK."
   },
   deepseek: {
     id: "deepseek",
     displayName: "DeepSeek",
     envKey: "DEEPSEEK_API_KEY",
-    mode: "stub",
-    notes: "Configurable option; adapter can be added through OpenAI-compatible REST."
+    mode: "live",
+    notes: "Live OpenAI-compatible adapter for DeepSeek chat models."
   },
   openrouter: {
     id: "openrouter",
     displayName: "OpenRouter",
     envKey: "OPENROUTER_API_KEY",
-    mode: "stub",
-    notes: "Configurable universal fallback option."
+    mode: "live",
+    notes: "Live OpenAI-compatible universal fallback adapter."
   },
   mistral: {
     id: "mistral",
     displayName: "Mistral",
     envKey: "MISTRAL_API_KEY",
-    mode: "stub",
-    notes: "Configurable option for Mistral Large and smaller fast models."
+    mode: "live",
+    notes: "Live OpenAI-compatible adapter for Mistral models."
   }
 };
 

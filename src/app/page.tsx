@@ -107,8 +107,8 @@ export default function Home() {
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <MetricCard label="Live Route" value="OpenAI/Gemini -> Groq" />
-              <MetricCard label="Fallback" value="Quota aware" />
+              <MetricCard label="Live Route" value="7-provider chain" />
+              <MetricCard label="Fallback" value="Auto failover" />
               <MetricCard label="Validation" value="Strict JSON" />
             </div>
           </div>
