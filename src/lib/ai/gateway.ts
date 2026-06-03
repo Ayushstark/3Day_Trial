@@ -30,7 +30,7 @@ export async function generateJsonWithGateway(options: GenerateJsonOptions): Pro
 
   for (const route of routes) {
     try {
-      const text = await callProvider(route, options.prompt);
+      const text = await callProviderWithJsonRepair(route, options.prompt);
       return {
         output: extractJsonObject(text),
         provider: route.provider,
@@ -45,6 +45,27 @@ export async function generateJsonWithGateway(options: GenerateJsonOptions): Pro
   }
 
   throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
+}
+
+async function callProviderWithJsonRepair(route: ModelRoute, prompt: string): Promise<string> {
+  const text = await callProvider(route, prompt);
+
+  try {
+    extractJsonObject(text);
+    return text;
+  } catch (error) {
+    const repairPrompt = [
+      "The previous response was not valid parseable JSON for the requested schema.",
+      "Return only the corrected JSON object. Do not include markdown, comments, or prose.",
+      "Original task:",
+      prompt,
+      "Invalid response:",
+      text.slice(0, 6000)
+    ].join("\n");
+    const repairedText = await callProvider(route, repairPrompt);
+    extractJsonObject(repairedText);
+    return repairedText;
+  }
 }
 
 function chooseLiveRoutes(routes: ModelRoute[]): ModelRoute[] {

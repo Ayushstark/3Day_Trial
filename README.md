@@ -35,6 +35,8 @@ GOOGLE_AI_API_KEY=
 DEEPSEEK_API_KEY=
 OPENROUTER_API_KEY=
 MISTRAL_API_KEY=
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
 ```
 
 Live adapters currently implemented:
@@ -69,7 +71,8 @@ npm.cmd run evaluate
 - `POST /api/generate`
 - `GET /api/generate/:jobId`
 - `GET /api/generate/:jobId/stream`
-- `GET /api/generate/:jobId/repair`
+- `POST /api/generate/:jobId/run`
+- `POST /api/generate/:jobId/repair`
 - `GET /api/integrations`
 
 ## Pipeline Architecture
@@ -189,8 +192,13 @@ Stubbed with clear metadata/interface:
 - Salesforce
 - HubSpot
 - Webhook
+- Notion
+- Airtable
+- Twilio SMS
+- GitHub
+- Zapier
 
-Additional registry IDs are represented in validation schemas for future expansion.
+Live OAuth/API calls are intentionally out of scope. The registry includes action names, trigger types, input schemas, and output schemas so a downstream developer can implement the actual third-party call.
 
 ## Evaluation Results
 
@@ -214,7 +222,7 @@ evaluation-results.json
 - Live OAuth/API calls for third-party integrations are not implemented.
 - Integration actions are metadata stubs suitable for downstream implementation.
 - Provider gateway has live adapters for seven providers and config entries for all eight.
-- Job storage is in-memory for the trial prototype.
+- Job storage uses Vercel KV/Upstash Redis when `KV_REST_API_URL` and `KV_REST_API_TOKEN` are present; otherwise it falls back to in-memory storage for local development.
 - Deterministic generation remains as a fallback and regression baseline.
 
 ## Notes For Reviewers

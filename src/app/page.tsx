@@ -87,7 +87,7 @@ export default function Home() {
   return (
     <main className="min-h-screen text-ink">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-6">
-        <header className="grid gap-5 border-b border-line pb-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <header className="flex flex-col gap-3 border-b border-line pb-5">
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-medium text-accent">
@@ -105,9 +105,6 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-3xl font-semibold tracking-normal text-ink">Intent And Schema Pipeline</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                Generate validated intent, data schema, and AppSpec outputs with visible provider failures and repair logs.
-              </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <MetricCard label="Live Route" value="7-provider chain" />
@@ -115,7 +112,6 @@ export default function Home() {
               <MetricCard label="Validation" value="Strict JSON" />
             </div>
           </div>
-          <PipelineScene />
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -137,7 +133,7 @@ export default function Home() {
                 className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
                 title="Run intent extraction"
               >
-                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {isSubmitting ? <Loader2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                 Generate
               </button>
             </div>
@@ -170,33 +166,6 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PipelineScene() {
-  const nodes = [
-    { label: "Intent", className: "left-1/2 top-2 -translate-x-1/2" },
-    { label: "Schema", className: "bottom-8 left-6" },
-    { label: "Spec", className: "bottom-8 right-6" }
-  ];
-
-  return (
-    <div className="pipeline-scene hidden min-h-52 items-center justify-center rounded-lg border border-line bg-surface shadow-sm lg:flex">
-      <div className="relative h-44 w-44">
-        <div className="pipeline-ring absolute inset-5 rounded-full border border-accent/40 shadow-[0_0_50px_rgb(var(--color-accent)/0.18)]" />
-        <div className="absolute inset-10 rounded-full border border-line" />
-        <div className="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-accent/40 bg-panel shadow-lg shadow-accent/10" />
-        {nodes.map((node, index) => (
-          <div
-            key={node.label}
-            className={`pipeline-node absolute ${node.className} flex h-12 w-12 items-center justify-center rounded-lg border border-line bg-panel text-[10px] font-semibold text-accent shadow-md`}
-            style={{ animationDelay: `${index * 0.35}s` }}
-          >
-            {node.label}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latestEvent?: StageEvent }) {
   const stages = [
     { id: "intent", label: "Intent" },
@@ -216,7 +185,7 @@ function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latest
                 {status === "complete" ? (
                   <CheckCircle2 className="h-4 w-4 text-accent" />
                 ) : status === "running" ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-warn" />
+                  <Loader2 className="h-4 w-4 text-warn" />
                 ) : status === "failed" ? (
                   <AlertCircle className="h-4 w-4 text-danger" />
                 ) : (
@@ -508,7 +477,21 @@ function ErrorPanel({ job, latestEvent }: { job: GenerationJob | null; latestEve
           ))}
         </ul>
       )}
-      {job?.repairLog.length ? <p className="mt-4 text-sm text-muted">{job.repairLog.length} repair attempts logged.</p> : null}
+      {job?.repairLog.length ? (
+        <div className="mt-4">
+          <h3 className="text-xs font-semibold uppercase text-muted">Repair Log</h3>
+          <ul className="mt-2 space-y-2">
+            {job.repairLog.map((entry, index) => (
+              <li key={`${entry.stage}-${entry.errorInput}-${index}`} className="rounded-md border border-line bg-panel px-3 py-2 text-xs">
+                <div className="font-medium text-ink">
+                  {entry.strategy} repair: {entry.outcome}
+                </div>
+                <div className="mt-1 text-muted">{entry.message}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </section>
   );
 }

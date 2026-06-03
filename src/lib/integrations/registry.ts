@@ -182,5 +182,118 @@ export const integrationRegistry: IntegrationRegistry = [
     ],
     implemented: stubbed,
     implementationNote: "Stubbed; interface defines payload and signing requirements."
+  },
+  {
+    id: "notion",
+    displayName: "Notion",
+    authType: "oauth2",
+    triggers: [{ event: "updated", description: "Data change in a generated app entity" }],
+    actions: [
+      {
+        id: "create_page",
+        description: "Create a Notion page from an app record",
+        inputSchema: { databaseId: "string", title: "string", properties: "json" },
+        outputSchema: { pageId: "string", pageUrl: "string" },
+        implemented: stubbed
+      },
+      {
+        id: "update_database_row",
+        description: "Update a Notion database row",
+        inputSchema: { pageId: "string", properties: "json" },
+        outputSchema: { pageId: "string" },
+        implemented: stubbed
+      }
+    ],
+    implemented: stubbed,
+    implementationNote: "Stubbed for metadata validation only."
+  },
+  {
+    id: "airtable",
+    displayName: "Airtable",
+    authType: "api_key",
+    triggers: [{ event: "updated", description: "App record event mirrored into Airtable" }],
+    actions: [
+      {
+        id: "create_record",
+        description: "Create an Airtable record",
+        inputSchema: { baseId: "string", tableName: "string", fields: "json" },
+        outputSchema: { recordId: "string" },
+        implemented: stubbed
+      },
+      {
+        id: "update_field",
+        description: "Update fields on an Airtable record",
+        inputSchema: { baseId: "string", tableName: "string", recordId: "string", fields: "json" },
+        outputSchema: { recordId: "string" },
+        implemented: stubbed
+      }
+    ],
+    implemented: stubbed,
+    implementationNote: "Stubbed for metadata validation only."
+  },
+  {
+    id: "twilio_sms",
+    displayName: "Twilio SMS",
+    authType: "api_key",
+    triggers: [{ event: "status_changed", description: "App status change requiring SMS notification" }],
+    actions: [
+      {
+        id: "send_sms",
+        description: "Send an SMS notification",
+        inputSchema: { to: "string", body: "text", from: "string optional" },
+        outputSchema: { messageSid: "string" },
+        implemented: stubbed
+      },
+      {
+        id: "trigger_otp",
+        description: "Start an OTP verification flow",
+        inputSchema: { to: "string", channel: "string" },
+        outputSchema: { verificationSid: "string" },
+        implemented: stubbed
+      }
+    ],
+    implemented: stubbed,
+    implementationNote: "Stubbed for metadata validation only."
+  },
+  {
+    id: "github",
+    displayName: "GitHub",
+    authType: "oauth2",
+    triggers: [{ event: "created", description: "Generated app workflow event for development teams" }],
+    actions: [
+      {
+        id: "create_issue",
+        description: "Create a GitHub issue",
+        inputSchema: { owner: "string", repo: "string", title: "string", body: "text" },
+        outputSchema: { issueNumber: "number", issueUrl: "string" },
+        implemented: stubbed
+      },
+      {
+        id: "trigger_workflow_dispatch",
+        description: "Trigger a GitHub Actions workflow dispatch",
+        inputSchema: { owner: "string", repo: "string", workflowId: "string", ref: "string", inputs: "json optional" },
+        outputSchema: { status: "string" },
+        implemented: stubbed
+      }
+    ],
+    implemented: stubbed,
+    implementationNote: "Stubbed for metadata validation only."
+  },
+  {
+    id: "zapier",
+    displayName: "Zapier",
+    authType: "webhook_secret",
+    triggers: [{ event: "created", description: "Any generated app event sent to Zapier" }],
+    actions: [
+      {
+        id: "send_zapier_webhook",
+        description: "Send structured payload to a Zapier webhook URL",
+        inputSchema: { url: "string", payload: "json", secret: "string optional" },
+        outputSchema: { statusCode: "number" },
+        implemented: stubbed
+      }
+    ],
+    implemented: stubbed,
+    implementationNote: "Stubbed for metadata validation only."
   }
 ];
