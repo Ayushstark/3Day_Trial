@@ -26,17 +26,17 @@ export type StageRouteConfig = {
 
 export const MODEL_ROUTES: Record<PipelineStage, StageRouteConfig> = {
   intent: {
-    primary: { provider: "groq", model: "llama-3.1-8b-instant", maxEstimatedUsd: 0.01, maxLatencyMs: 2000 },
-    fallback: { provider: "openai", model: "gpt-4o-mini", maxEstimatedUsd: 0.03 },
+    primary: { provider: "openai", model: "gpt-4o-mini", maxEstimatedUsd: 0.03 },
+    fallback: { provider: "groq", model: "llama-3.1-8b-instant", maxEstimatedUsd: 0.01, maxLatencyMs: 2000 },
     repairEscalation: { provider: "gemini", model: "gemini-1.5-flash" }
   },
   schema: {
     primary: { provider: "openai", model: "gpt-4o", maxEstimatedUsd: 0.15 },
-    fallback: { provider: "gemini", model: "gemini-1.5-pro", maxEstimatedUsd: 0.12 },
-    repairEscalation: { provider: "gemini", model: "gemini-1.5-pro" }
+    fallback: { provider: "gemini", model: "gemini-2.5-flash", maxEstimatedUsd: 0.12 },
+    repairEscalation: { provider: "gemini", model: "gemini-2.5-flash" }
   },
   appSpec: {
-    primary: { provider: "gemini", model: "gemini-1.5-pro", maxEstimatedUsd: 0.12 },
+    primary: { provider: "gemini", model: "gemini-2.5-flash", maxEstimatedUsd: 0.12 },
     fallback: { provider: "openai", model: "gpt-4o", maxEstimatedUsd: 0.2 },
     repairEscalation: { provider: "openai", model: "gpt-4o" }
   }
@@ -50,6 +50,8 @@ export const COST_TABLE: Record<string, { inputPerMillion: number; outputPerMill
   "llama-3.1-8b-instant": { inputPerMillion: 0.05, outputPerMillion: 0.08 },
   "gemini-1.5-pro": { inputPerMillion: 1.25, outputPerMillion: 5 },
   "gemini-1.5-flash": { inputPerMillion: 0.075, outputPerMillion: 0.3 },
+  "gemini-2.5-flash": { inputPerMillion: 0.3, outputPerMillion: 2.5 },
+  "gemini-2.5-pro": { inputPerMillion: 1.25, outputPerMillion: 10 },
   "deepseek-chat": { inputPerMillion: 0.14, outputPerMillion: 0.28 },
   "mistral-large-latest": { inputPerMillion: 2, outputPerMillion: 6 },
   "openrouter/auto": { inputPerMillion: 1, outputPerMillion: 3 },

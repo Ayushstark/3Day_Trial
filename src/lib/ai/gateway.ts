@@ -26,6 +26,8 @@ export async function generateJsonWithGateway(options: GenerateJsonOptions): Pro
     return null;
   }
 
+  const errors: string[] = [];
+
   try {
     const text = await callProvider(route, options.prompt);
     const output = extractJsonObject(text);
@@ -37,10 +39,11 @@ export async function generateJsonWithGateway(options: GenerateJsonOptions): Pro
       outputTokens: estimateTokens(text),
       usedFallback: route.provider !== options.primary.provider || route.model !== options.primary.model
     };
-  } catch {
+  } catch (error) {
+    errors.push(`${route.provider}/${route.model}: ${error instanceof Error ? error.message : "unknown error"}`);
     const fallbackRoute = isProviderReady(options.fallback.provider) ? options.fallback : undefined;
     if (!fallbackRoute || (fallbackRoute.provider === route.provider && fallbackRoute.model === route.model)) {
-      return null;
+      throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
     }
 
     try {
@@ -53,8 +56,9 @@ export async function generateJsonWithGateway(options: GenerateJsonOptions): Pro
         outputTokens: estimateTokens(text),
         usedFallback: true
       };
-    } catch {
-      return null;
+    } catch (fallbackError) {
+      errors.push(`${fallbackRoute.provider}/${fallbackRoute.model}: ${fallbackError instanceof Error ? fallbackError.message : "unknown error"}`);
+      throw new Error(`AI gateway failed: ${errors.join(" | ")}`);
     }
   }
 }

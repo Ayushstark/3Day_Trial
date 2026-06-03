@@ -79,3 +79,7 @@ export function isProviderReady(provider: ProviderId): boolean {
   const descriptor = AI_PROVIDERS[provider];
   return descriptor.mode === "live" && Boolean(getProviderApiKey(provider));
 }
+
+export function isRouteReady(provider: ProviderId): boolean {
+  return isProviderReady(provider);
+}

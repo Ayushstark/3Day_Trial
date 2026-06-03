@@ -1,12 +1,14 @@
 import { generateJsonWithGateway } from "@/lib/ai/gateway";
+import { isProviderReady } from "@/lib/ai/providers";
 import { buildAppSpecPrompt, buildIntentPrompt, buildSchemaPrompt } from "@/lib/ai/prompts";
-import { estimateCost, MODEL_ROUTES } from "@/lib/ai/routing";
+import { estimateCost, MODEL_ROUTES, type StageRouteConfig } from "@/lib/ai/routing";
 import { getJob, pushEvent, setStage, updateJob } from "@/lib/jobs/store";
 import { generateAppSpecDeterministic } from "@/lib/pipeline/appSpec";
 import { extractIntentDeterministic } from "@/lib/pipeline/intent";
 import { generateDataSchemaDeterministic } from "@/lib/pipeline/schema";
 import { repairAppSpec } from "@/lib/repair/appSpecRepair";
 import { repairDataSchema } from "@/lib/repair/schemaRepair";
+import { appIntentSchema, appSpecSchema, dataSchemaSchema } from "@/lib/schemas";
 import type { AppIntent, AppSpec, DataSchema, ValidationError } from "@/lib/types";
 import { validateAppSpec, validateDataSchema, validateIntent } from "@/lib/validation/validate";
 
@@ -27,14 +29,13 @@ export async function runIntentStage(jobId: string): Promise<void> {
       fallback: MODEL_ROUTES.intent.fallback,
       prompt: buildIntentPrompt(job.prompt)
     });
-    const aiIntent = aiResult ? validateAiIntent(aiResult.output) : null;
-    const intent = aiIntent ?? extractIntentDeterministic(job.prompt);
+    const intent = resolveIntentOutput(aiResult?.output, MODEL_ROUTES.intent, job.prompt);
     const validationErrors = validateIntent(intent);
     const latencyMs = Math.round(performance.now() - start);
-    const inputTokens = aiIntent && aiResult ? aiResult.inputTokens : estimateTokens(job.prompt);
+    const inputTokens = aiResult ? aiResult.inputTokens : estimateTokens(job.prompt);
     const outputTokens = estimateTokens(JSON.stringify(intent));
-    const provider = aiIntent && aiResult ? aiResult.provider : route.provider;
-    const model = aiIntent && aiResult ? aiResult.model : route.model;
+    const provider = aiResult ? aiResult.provider : route.provider;
+    const model = aiResult ? aiResult.model : route.model;
 
     updateJob(jobId, (current) => {
       const next = {
@@ -110,14 +111,13 @@ export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<
       fallback: MODEL_ROUTES.schema.fallback,
       prompt: buildSchemaPrompt(intent)
     });
-    const aiSchema = aiResult ? validateAiSchema(aiResult.output) : null;
-    const generatedSchema = aiSchema ?? generateDataSchemaDeterministic(intent);
+    const generatedSchema = resolveSchemaOutput(aiResult?.output, MODEL_ROUTES.schema, intent);
     const { schema, validationErrors, repairLog } = validateAndRepairSchema(generatedSchema);
     const latencyMs = Math.round(performance.now() - start);
-    const inputTokens = aiSchema && aiResult ? aiResult.inputTokens : estimateTokens(JSON.stringify(intent));
+    const inputTokens = aiResult ? aiResult.inputTokens : estimateTokens(JSON.stringify(intent));
     const outputTokens = estimateTokens(JSON.stringify(schema));
-    const provider = aiSchema && aiResult ? aiResult.provider : route.provider;
-    const model = aiSchema && aiResult ? aiResult.model : route.model;
+    const provider = aiResult ? aiResult.provider : route.provider;
+    const model = aiResult ? aiResult.model : route.model;
 
     updateJob(jobId, (current) => {
       const next = {
@@ -195,14 +195,13 @@ export async function runAppSpecStage(jobId: string, intent: AppIntent, dataSche
       fallback: MODEL_ROUTES.appSpec.fallback,
       prompt: buildAppSpecPrompt(intent, dataSchema)
     });
-    const aiAppSpec = aiResult ? validateAiAppSpec(aiResult.output, dataSchema) : null;
-    const generatedAppSpec = aiAppSpec ?? generateAppSpecDeterministic(intent, dataSchema);
+    const generatedAppSpec = resolveAppSpecOutput(aiResult?.output, MODEL_ROUTES.appSpec, intent, dataSchema);
     const { appSpec, validationErrors, repairLog } = validateAndRepairAppSpec(generatedAppSpec, dataSchema);
     const latencyMs = Math.round(performance.now() - start);
-    const inputTokens = aiAppSpec && aiResult ? aiResult.inputTokens : estimateTokens(JSON.stringify(dataSchema));
+    const inputTokens = aiResult ? aiResult.inputTokens : estimateTokens(JSON.stringify(dataSchema));
     const outputTokens = estimateTokens(JSON.stringify(appSpec));
-    const provider = aiAppSpec && aiResult ? aiResult.provider : route.provider;
-    const model = aiAppSpec && aiResult ? aiResult.model : route.model;
+    const provider = aiResult ? aiResult.provider : route.provider;
+    const model = aiResult ? aiResult.model : route.model;
 
     updateJob(jobId, (current) => {
       const next = {
@@ -286,19 +285,73 @@ function validateAndRepairSchema(schema: DataSchema): {
   };
 }
 
-function validateAiIntent(output: unknown): AppIntent | null {
-  const errors = validateIntent(output);
-  return errors.length === 0 ? (output as AppIntent) : null;
+function resolveIntentOutput(output: unknown, route: StageRouteConfig, prompt: string): AppIntent {
+  if (!hasReadyAiRoute(route)) {
+    return extractIntentDeterministic(prompt);
+  }
+
+  const candidate = unwrapStageOutput(output, ["appIntent", "intent", "output"]);
+  const result = appIntentSchema.safeParse(candidate);
+  if (!result.success) {
+    const details = result.error.issues.map((issue) => `${issue.code}:${issue.path.map(String).join(".") || "root"}`).join(", ");
+    throw new Error(`AI intent output failed validation: ${details}`);
+  }
+
+  return result.data;
 }
 
-function validateAiSchema(output: unknown): DataSchema | null {
-  const errors = validateDataSchema(output);
-  return errors.length === 0 ? (output as DataSchema) : null;
+function resolveSchemaOutput(output: unknown, route: StageRouteConfig, intent: AppIntent): DataSchema {
+  if (!hasReadyAiRoute(route)) {
+    return generateDataSchemaDeterministic(intent);
+  }
+
+  const candidate = unwrapStageOutput(output, ["dataSchema", "schema", "output"]);
+  const result = dataSchemaSchema.safeParse(candidate);
+  if (!result.success) {
+    const details = result.error.issues.map((issue) => `${issue.code}:${issue.path.map(String).join(".") || "root"}`).join(", ");
+    throw new Error(`AI schema output failed validation: ${details}`);
+  }
+
+  return result.data;
 }
 
-function validateAiAppSpec(output: unknown, dataSchema: DataSchema): AppSpec | null {
-  const errors = validateAppSpec(output, dataSchema);
-  return errors.length === 0 ? (output as AppSpec) : null;
+function resolveAppSpecOutput(output: unknown, route: StageRouteConfig, intent: AppIntent, dataSchema: DataSchema): AppSpec {
+  if (!hasReadyAiRoute(route)) {
+    return generateAppSpecDeterministic(intent, dataSchema);
+  }
+
+  const candidate = unwrapStageOutput(output, ["appSpec", "spec", "output"]);
+  const shapeResult = appSpecSchema.safeParse(candidate);
+  if (!shapeResult.success) {
+    const details = shapeResult.error.issues.map((issue) => `${issue.code}:${issue.path.map(String).join(".") || "root"}`).join(", ");
+    throw new Error(`AI AppSpec output failed validation: ${details}`);
+  }
+
+  const errors = validateAppSpec(shapeResult.data, dataSchema);
+  if (errors.length > 0) {
+    throw new Error(`AI AppSpec output failed consistency validation: ${errors.map((error) => `${error.code}:${error.path.join(".") || "root"}`).join(", ")}`);
+  }
+
+  return shapeResult.data;
+}
+
+function hasReadyAiRoute(route: StageRouteConfig): boolean {
+  return isProviderReady(route.primary.provider) || isProviderReady(route.fallback.provider);
+}
+
+function unwrapStageOutput(output: unknown, keys: string[]): unknown {
+  if (!output || typeof output !== "object" || Array.isArray(output)) {
+    return output;
+  }
+
+  const record = output as Record<string, unknown>;
+  for (const key of keys) {
+    if (record[key] && typeof record[key] === "object") {
+      return record[key];
+    }
+  }
+
+  return output;
 }
 
 function validateAndRepairAppSpec(appSpec: AppSpec, dataSchema: DataSchema): {

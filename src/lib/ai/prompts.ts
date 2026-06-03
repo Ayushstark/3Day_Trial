@@ -8,6 +8,10 @@ export function buildIntentPrompt(prompt: string): string {
     "appType enum: crm, project_management, ecommerce, hr_tool, inventory, content_platform, analytics, custom.",
     "integrations_requested must use registry ids only: slack, salesforce, hubspot, whatsapp, gmail, notion, airtable, stripe, twilio_sms, webhook, google_sheets, jira, github, zapier.",
     "If the prompt is vague, proceed with documented assumptions rather than asking a question.",
+    "Preserve the user's full domain. Do not collapse a broad system into one feature just because one noun matches a known appType.",
+    "If the requested domain is healthcare, hospital, clinic, education, legal, finance, or another unsupported enum, use appType custom and include all core domain entities.",
+    "For a hospital/clinic system, likely entities include Patient, Doctor, Appointment, BillingRecord, PharmacyItem, Prescription, and User unless the prompt says otherwise.",
+    "For secure role-based access, include User or Role as an entity and include role-based access as a feature.",
     `User prompt: ${prompt}`
   ].join("\n");
 }

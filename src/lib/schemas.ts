@@ -33,8 +33,14 @@ export const appIntentSchema = z.object({
   appType: appTypeSchema,
   features: z.array(z.string().min(2)).min(1),
   entities: z.array(z.string().min(2)).min(1),
-  integrations_requested: z.array(integrationIdSchema),
-  assumptions: z.array(z.string().min(2)),
+  integrations_requested: z.preprocess(
+    (value) => (Array.isArray(value) ? value : value ? [value] : []),
+    z.array(integrationIdSchema)
+  ),
+  assumptions: z.preprocess(
+    (value) => (Array.isArray(value) ? value : typeof value === "string" && value.trim().length > 0 ? [value] : []),
+    z.array(z.string().min(2))
+  ),
   clarification_required: z.boolean().optional(),
   clarification_question: z.string().optional()
 });
@@ -60,12 +66,43 @@ export const entityFieldSchema = z.object({
   isUnique: z.boolean()
 });
 
-export const relationSchema = z.object({
+export const relationSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const relation = value as Record<string, unknown>;
+  const target = relation.target ?? relation.targetEntity ?? relation.relatedEntity ?? relation.entity ?? relation.model;
+  const rawType = String(relation.type ?? relation.relationType ?? relation.cardinality ?? "").toLowerCase();
+  const type =
+    rawType.includes("many") && rawType.includes("one")
+      ? rawType.startsWith("many")
+        ? "belongsTo"
+        : "hasMany"
+      : rawType.includes("belongs")
+        ? "belongsTo"
+        : rawType.includes("one")
+          ? "hasOne"
+          : rawType.includes("has_many") || rawType.includes("hasmany")
+            ? "hasMany"
+            : relation.type;
+
+  const targetText = typeof target === "string" ? target : "unknown";
+  const fallbackForeignKey = `${targetText.charAt(0).toLowerCase()}${targetText.slice(1)}Id`;
+
+  return {
+    ...relation,
+    type,
+    target,
+    foreignKey: relation.foreignKey ?? relation.foreign_key ?? fallbackForeignKey,
+    onDelete: relation.onDelete ?? relation.on_delete ?? "restrict"
+  };
+}, z.object({
   type: z.enum(["hasMany", "belongsTo", "hasOne"]),
   target: z.string().min(1),
   foreignKey: z.string().min(1),
   onDelete: z.enum(["cascade", "restrict", "setNull"])
-});
+}));
 
 export const entitySchemaSchema = z.object({
   name: z.string().min(1),
@@ -78,24 +115,80 @@ export const dataSchemaSchema = z.object({
   entities: z.array(entitySchemaSchema).min(1)
 });
 
-export const pageSchema = z.object({
+export const pageSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const page = value as Record<string, unknown>;
+  const boundEntity = page.boundEntity ?? page.entity ?? page.model ?? "User";
+  const rawComponents = Array.isArray(page.components) ? page.components : page.component ? [page.component] : ["table"];
+  const components = rawComponents
+    .map((component) => {
+      if (typeof component === "string") {
+        return normalizeComponent(component);
+      }
+      if (component && typeof component === "object") {
+        const record = component as Record<string, unknown>;
+        return normalizeComponent(String(record.type ?? record.component ?? record.name ?? ""));
+      }
+      return undefined;
+    })
+    .filter(Boolean);
+
+  return {
+    ...page,
+    route: page.route ?? page.path ?? page.url ?? `/app/${String(boundEntity).toLowerCase()}`,
+    layout: page.layout ?? inferLayoutFromName(String(page.name ?? "")),
+    boundEntity,
+    components
+  };
+}, z.object({
   name: z.string().min(1),
   route: z.string().startsWith("/"),
   layout: z.enum(["list", "detail", "dashboard", "settings"]),
   boundEntity: z.string().min(1),
   components: z.array(z.enum(["table", "form", "chart", "card"])).min(1)
-});
+}));
 
-export const apiEndpointSchema = z.object({
+export const apiEndpointSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const endpoint = value as Record<string, unknown>;
+  return {
+    ...endpoint,
+    path: endpoint.path ?? endpoint.route ?? endpoint.url ?? "/api/records",
+    method: typeof endpoint.method === "string" ? endpoint.method.toUpperCase() : endpoint.method,
+    handlerDescription: endpoint.handlerDescription ?? endpoint.handler ?? endpoint.description ?? "Generated API handler.",
+    boundEntity: endpoint.boundEntity ?? endpoint.entity ?? endpoint.model ?? "User",
+    authRequired: coerceBoolean(endpoint.authRequired ?? endpoint.requiresAuth ?? endpoint.auth, true),
+    rateLimit: coerceBoolean(endpoint.rateLimit ?? endpoint.rateLimited, true)
+  };
+}, z.object({
   path: z.string().startsWith("/"),
   method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
   handlerDescription: z.string().min(1),
   boundEntity: z.string().min(1),
   authRequired: z.boolean(),
   rateLimit: z.boolean()
-});
+}));
 
-export const authRulesSchema = z.object({
+export const authRulesSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {
+      roles: ["admin", "manager", "member"],
+      permissions: {}
+    };
+  }
+
+  const auth = value as Record<string, unknown>;
+  return {
+    roles: auth.roles ?? ["admin", "manager", "member"],
+    permissions: auth.permissions ?? auth.permissionMatrix ?? {}
+  };
+}, z.object({
   roles: z.array(z.string().min(1)).min(1),
   permissions: z.record(
     z.record(
@@ -106,9 +199,29 @@ export const authRulesSchema = z.object({
       })
     )
   )
-});
+}));
 
-export const integrationHookSchema = z.object({
+export const integrationHookSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const hook = value as Record<string, unknown>;
+  const integration = hook.integration ?? hook.integrationId ?? hook.provider;
+  const action = hook.action ?? hook.actionId ?? hook.actionType;
+  const trigger = hook.trigger && typeof hook.trigger === "object" ? (hook.trigger as Record<string, unknown>) : {};
+
+  return {
+    ...hook,
+    name: hook.name ?? `${String(integration ?? "integration")} hook`,
+    integration,
+    trigger: {
+      entity: trigger.entity ?? hook.entity ?? "User",
+      event: trigger.event ?? hook.event ?? "created"
+    },
+    action
+  };
+}, z.object({
   name: z.string().min(1),
   integration: integrationIdSchema,
   trigger: z.object({
@@ -116,9 +229,36 @@ export const integrationHookSchema = z.object({
     event: z.enum(["created", "updated", "deleted", "status_changed"])
   }),
   action: z.string().min(1)
-});
+}));
 
-export const workflowStubSchema = z.object({
+export const workflowStubSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const workflow = value as Record<string, unknown>;
+  const integration = workflow.integration ?? workflow.integrationId ?? workflow.provider;
+  const action = workflow.action ?? workflow.actionId ?? workflow.actionType;
+  const trigger = workflow.trigger && typeof workflow.trigger === "object" ? (workflow.trigger as Record<string, unknown>) : {};
+  const payload =
+    workflow.payload && typeof workflow.payload === "object" && !Array.isArray(workflow.payload)
+      ? Object.fromEntries(Object.entries(workflow.payload as Record<string, unknown>).map(([key, item]) => [key, String(item)]))
+      : { payload: Array.isArray(workflow.payload) ? workflow.payload.join(", ") : String(workflow.payload ?? "generated payload") };
+
+  return {
+    ...workflow,
+    name: workflow.name ?? `${String(integration ?? "integration")} workflow`,
+    description: workflow.description ?? `Generated workflow for ${String(integration ?? "integration")}.`,
+    trigger: {
+      entity: trigger.entity ?? workflow.entity ?? "User",
+      event: trigger.event ?? workflow.event ?? "created",
+      condition: trigger.condition ?? workflow.condition
+    },
+    integration,
+    action,
+    payload
+  };
+}, z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   trigger: z.object({
@@ -129,7 +269,45 @@ export const workflowStubSchema = z.object({
   integration: integrationIdSchema,
   action: z.string().min(1),
   payload: z.record(z.string())
-});
+}));
+
+function inferLayoutFromName(name: string): "list" | "detail" | "dashboard" | "settings" {
+  const lower = name.toLowerCase();
+  if (lower.includes("dashboard")) {
+    return "dashboard";
+  }
+  if (lower.includes("setting")) {
+    return "settings";
+  }
+  if (lower.includes("detail") || lower.includes("profile")) {
+    return "detail";
+  }
+  return "list";
+}
+
+function normalizeComponent(component: string): "table" | "form" | "chart" | "card" {
+  const lower = component.toLowerCase();
+  if (lower.includes("table") || lower.includes("list")) {
+    return "table";
+  }
+  if (lower.includes("form") || lower.includes("input")) {
+    return "form";
+  }
+  if (lower.includes("chart") || lower.includes("dashboard") || lower.includes("analytics")) {
+    return "chart";
+  }
+  return "card";
+}
+
+function coerceBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+  if (typeof value === "string") {
+    return ["true", "yes", "required", "y"].includes(value.toLowerCase());
+  }
+  return fallback;
+}
 
 export const appSpecSchema = z.object({
   pages: z.array(pageSchema).min(1),
