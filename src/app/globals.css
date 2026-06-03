@@ -3,19 +3,74 @@
 @tailwind utilities;
 
 :root {
-  color: #1f2933;
-  background: #f8fafc;
+  --color-ink: 20 31 46;
+  --color-muted: 91 111 139;
+  --color-line: 210 223 237;
+  --color-panel: 244 248 252;
+  --color-surface: 255 255 255;
+  --color-accent: 13 133 122;
+  --color-warn: 180 83 9;
+  --color-danger: 180 35 24;
+  color: rgb(var(--color-ink));
+  background: rgb(var(--color-panel));
+}
+
+.dark {
+  --color-ink: 232 239 247;
+  --color-muted: 151 164 184;
+  --color-line: 42 57 79;
+  --color-panel: 10 17 28;
+  --color-surface: 16 27 43;
+  --color-accent: 45 212 191;
+  --color-warn: 251 191 36;
+  --color-danger: 248 113 113;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: #f8fafc;
-  color: #1f2933;
+  background:
+    radial-gradient(circle at 18% 10%, rgb(var(--color-accent) / 0.12), transparent 30rem),
+    linear-gradient(180deg, rgb(var(--color-panel)), rgb(var(--color-panel)));
+  color: rgb(var(--color-ink));
 }
 
 button,
 textarea,
 input {
   font: inherit;
+}
+
+@keyframes pipeline-spin {
+  from {
+    transform: rotateX(58deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(58deg) rotateZ(360deg);
+  }
+}
+
+@keyframes node-pulse {
+  0%,
+  100% {
+    transform: translateZ(16px) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateZ(34px) scale(1.08);
+    opacity: 1;
+  }
+}
+
+.pipeline-scene {
+  perspective: 900px;
+}
+
+.pipeline-ring {
+  transform-style: preserve-3d;
+  animation: pipeline-spin 18s linear infinite;
+}
+
+.pipeline-node {
+  animation: node-pulse 2.8s ease-in-out infinite;
 }

@@ -32,12 +32,12 @@ export const MODEL_ROUTES: Record<PipelineStage, StageRouteConfig> = {
   },
   schema: {
     primary: { provider: "openai", model: "gpt-4o", maxEstimatedUsd: 0.15 },
-    fallback: { provider: "gemini", model: "gemini-2.5-flash", maxEstimatedUsd: 0.12 },
+    fallback: { provider: "groq", model: "llama-3.1-8b-instant", maxEstimatedUsd: 0.03 },
     repairEscalation: { provider: "gemini", model: "gemini-2.5-flash" }
   },
   appSpec: {
     primary: { provider: "gemini", model: "gemini-2.5-flash", maxEstimatedUsd: 0.12 },
-    fallback: { provider: "openai", model: "gpt-4o", maxEstimatedUsd: 0.2 },
+    fallback: { provider: "groq", model: "llama-3.1-8b-instant", maxEstimatedUsd: 0.05 },
     repairEscalation: { provider: "openai", model: "gpt-4o" }
   }
 };

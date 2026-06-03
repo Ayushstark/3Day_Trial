@@ -28,13 +28,18 @@ export const integrationIdSchema = z.enum([
   "zapier"
 ]);
 
+const integrationIds = new Set<string>(integrationIdSchema.options);
+
 export const appIntentSchema = z.object({
   appName: z.string().min(2),
   appType: appTypeSchema,
   features: z.array(z.string().min(2)).min(1),
   entities: z.array(z.string().min(2)).min(1),
   integrations_requested: z.preprocess(
-    (value) => (Array.isArray(value) ? value : value ? [value] : []),
+    (value) =>
+      (Array.isArray(value) ? value : value ? [value] : [])
+        .map((item) => (typeof item === "string" ? item.trim().toLowerCase() : ""))
+        .filter((item) => integrationIds.has(item)),
     z.array(integrationIdSchema)
   ),
   assumptions: z.preprocess(

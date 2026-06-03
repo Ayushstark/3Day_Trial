@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Loader2, Send, ServerCog } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Moon, Send, ServerCog, Sun } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { AppIntent, AppSpec, DataSchema, GenerationJob, IntegrationRegistry, StageEvent } from "@/lib/types";
 
@@ -14,6 +14,18 @@ export default function Home() {
   const [events, setEvents] = useState<StageEvent[]>([]);
   const [integrations, setIntegrations] = useState<IntegrationRegistry>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("oneatlas-theme");
+    const nextTheme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
+    setTheme(nextTheme);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem("oneatlas-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     void fetch("/api/integrations")
@@ -70,18 +82,41 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen text-ink">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-6">
-        <header className="flex flex-col gap-2 border-b border-line pb-5">
-          <div className="flex items-center gap-2 text-sm font-medium text-accent">
-            <ServerCog className="h-4 w-4" />
-            OneAtlas AppSpec Pipeline
+        <header className="grid gap-5 border-b border-line pb-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-accent">
+                <ServerCog className="h-4 w-4" />
+                OneAtlas AppSpec Pipeline
+              </div>
+              <button
+                type="button"
+                onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-line bg-surface text-ink shadow-sm"
+                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-normal text-ink">Intent And Schema Pipeline</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                Generate validated intent, data schema, and AppSpec outputs with visible provider failures and repair logs.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Live Route" value="OpenAI/Gemini -> Groq" />
+              <MetricCard label="Fallback" value="Quota aware" />
+              <MetricCard label="Validation" value="Strict JSON" />
+            </div>
           </div>
-          <h1 className="text-2xl font-semibold tracking-normal text-ink">Intent And Schema Pipeline</h1>
+          <PipelineScene />
         </header>
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="rounded-lg border border-line bg-white p-4">
+          <div className="rounded-lg border border-line bg-surface p-4 shadow-sm">
             <label htmlFor="prompt" className="mb-2 block text-sm font-medium text-ink">
               Prompt
             </label>
@@ -89,7 +124,7 @@ export default function Home() {
               id="prompt"
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
-              className="min-h-36 w-full resize-y rounded-md border border-line bg-white p-3 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="min-h-36 w-full resize-y rounded-md border border-line bg-panel p-3 text-sm text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
             <div className="mt-3 flex justify-end">
               <button
@@ -123,6 +158,42 @@ export default function Home() {
   );
 }
 
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-line bg-surface px-3 py-2 shadow-sm">
+      <div className="text-xs font-semibold uppercase text-muted">{label}</div>
+      <div className="mt-1 text-sm font-medium text-ink">{value}</div>
+    </div>
+  );
+}
+
+function PipelineScene() {
+  const nodes = [
+    { label: "Intent", className: "left-1/2 top-2 -translate-x-1/2" },
+    { label: "Schema", className: "bottom-8 left-6" },
+    { label: "Spec", className: "bottom-8 right-6" }
+  ];
+
+  return (
+    <div className="pipeline-scene hidden min-h-52 items-center justify-center rounded-lg border border-line bg-surface shadow-sm lg:flex">
+      <div className="relative h-44 w-44">
+        <div className="pipeline-ring absolute inset-5 rounded-full border border-accent/40 shadow-[0_0_50px_rgb(var(--color-accent)/0.18)]" />
+        <div className="absolute inset-10 rounded-full border border-line" />
+        <div className="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-accent/40 bg-panel shadow-lg shadow-accent/10" />
+        {nodes.map((node, index) => (
+          <div
+            key={node.label}
+            className={`pipeline-node absolute ${node.className} flex h-12 w-12 items-center justify-center rounded-lg border border-line bg-panel text-[10px] font-semibold text-accent shadow-md`}
+            style={{ animationDelay: `${index * 0.35}s` }}
+          >
+            {node.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latestEvent?: StageEvent }) {
   const stages = [
     { id: "intent", label: "Intent" },
@@ -131,7 +202,7 @@ function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latest
   ] as const;
 
   return (
-    <aside className="rounded-lg border border-line bg-white p-4">
+    <aside className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">Stage Progress</h2>
       <div className="mt-4 space-y-3">
         {stages.map((stage) => {
@@ -162,7 +233,7 @@ function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latest
 
 function IntentPanel({ intent }: { intent?: AppIntent }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-4">
+    <section className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">AppIntent Output</h2>
       {intent ? (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -197,7 +268,7 @@ function InfoBlock({ label, values }: { label: string; values: string[] }) {
 
 function SchemaPanel({ schema }: { schema?: DataSchema }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-4">
+    <section className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">DataSchema Output</h2>
       {schema ? (
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -271,7 +342,7 @@ function fieldFlags(field: DataSchema["entities"][number]["fields"][number]): st
 
 function AppSpecPanel({ appSpec }: { appSpec?: AppSpec }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-4">
+    <section className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">AppSpec Output</h2>
       {appSpec ? (
         <div className="mt-4 space-y-5">
@@ -414,20 +485,20 @@ function ErrorPanel({ job, latestEvent }: { job: GenerationJob | null; latestEve
   const visibleEventErrors = eventErrors.length ? eventErrors : latestError;
 
   return (
-    <section className="rounded-lg border border-line bg-white p-4">
+    <section className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">Error And Repair Panel</h2>
       {errors.length === 0 && visibleEventErrors.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No validation errors logged yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">
           {visibleEventErrors.map((error, index) => (
-            <li key={`${error.stage}-${index}`} className="rounded-md border border-danger/30 bg-red-50 p-3 text-sm">
+            <li key={`${error.stage}-${index}`} className="rounded-md border border-danger/30 bg-danger/10 p-3 text-sm">
               <div className="font-medium text-danger">{error.stage} failed</div>
               <div className="mt-1 break-words text-ink">{error.message}</div>
             </li>
           ))}
           {errors.map((error, index) => (
-            <li key={`${error.code}-${index}`} className="rounded-md border border-danger/30 bg-red-50 p-3 text-sm">
+            <li key={`${error.code}-${index}`} className="rounded-md border border-danger/30 bg-danger/10 p-3 text-sm">
               <div className="font-medium text-danger">{error.code}</div>
               <div className="mt-1 text-ink">{error.message}</div>
             </li>
@@ -441,7 +512,7 @@ function ErrorPanel({ job, latestEvent }: { job: GenerationJob | null; latestEve
 
 function IntegrationPanel({ integrations }: { integrations: IntegrationRegistry }) {
   return (
-    <section className="rounded-lg border border-line bg-white p-4">
+    <section className="rounded-lg border border-line bg-surface p-4">
       <h2 className="text-sm font-semibold text-ink">Integration Registry</h2>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {integrations.map((integration) => (
