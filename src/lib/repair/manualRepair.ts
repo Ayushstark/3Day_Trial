@@ -11,10 +11,10 @@ export type ManualRepairResult = {
   repairLog: RepairLogEntry[];
 };
 
-export function runManualRepair(job: GenerationJob, stage: PipelineStage, errorHint?: string): ManualRepairResult {
+export async function runManualRepair(job: GenerationJob, stage: PipelineStage, errorHint?: string): Promise<ManualRepairResult> {
   if (stage === "intent") {
     const beforeErrors = validateIntent(job.intent);
-    const repaired = updateJob(job.id, (current) =>
+    const repaired = await updateJob(job.id, (current) =>
       pushEvent(current, {
         type: beforeErrors.length ? "stage_failed" : "stage_complete",
         stage: "intent",
@@ -43,7 +43,7 @@ export function runManualRepair(job: GenerationJob, stage: PipelineStage, errorH
   return repairAppSpecStage(job, errorHint);
 }
 
-function repairSchemaStage(job: GenerationJob, errorHint?: string): ManualRepairResult {
+async function repairSchemaStage(job: GenerationJob, errorHint?: string): Promise<ManualRepairResult> {
   if (!job.dataSchema) {
     throw new Error("schema output is not available for this job");
   }
@@ -54,7 +54,7 @@ function repairSchemaStage(job: GenerationJob, errorHint?: string): ManualRepair
   const afterErrors = validateDataSchema(repaired.schema);
   const nextStatus: StageStatus = afterErrors.length === 0 ? "complete" : "failed";
 
-  const updated = updateJob(job.id, (current) => {
+  const updated = await updateJob(job.id, (current) => {
     const next = {
       ...current,
       dataSchema: repaired.schema,
@@ -85,7 +85,7 @@ function repairSchemaStage(job: GenerationJob, errorHint?: string): ManualRepair
   };
 }
 
-function repairAppSpecStage(job: GenerationJob, errorHint?: string): ManualRepairResult {
+async function repairAppSpecStage(job: GenerationJob, errorHint?: string): Promise<ManualRepairResult> {
   if (!job.dataSchema || !job.appSpec) {
     throw new Error("dataSchema and appSpec outputs are required for AppSpec repair");
   }
@@ -96,7 +96,7 @@ function repairAppSpecStage(job: GenerationJob, errorHint?: string): ManualRepai
   const afterErrors = validateAppSpec(repaired.appSpec, job.dataSchema);
   const nextStatus: StageStatus = afterErrors.length === 0 ? "complete" : "failed";
 
-  const updated = updateJob(job.id, (current) => {
+  const updated = await updateJob(job.id, (current) => {
     const next = {
       ...current,
       appSpec: repaired.appSpec,

@@ -76,6 +76,9 @@ export default function Home() {
       }
 
       setJobId(data.jobId);
+      void fetch(`/api/generate/${data.jobId}/run`, { method: "POST" }).catch((error: unknown) => {
+        console.error("Unable to run generation pipeline", error);
+      });
     } finally {
       setIsSubmitting(false);
     }

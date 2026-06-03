@@ -7,8 +7,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ jobId: str
   const stream = new ReadableStream({
     start(controller) {
       let lastEventId = 0;
-      const sendEvents = () => {
-        const job = getJob(jobId);
+      const sendEvents = async () => {
+        const job = await getJob(jobId);
         if (!job) {
           controller.enqueue(encoder.encode(`event: stage_failed\ndata: ${JSON.stringify({ message: "job not found" })}\n\n`));
           controller.close();
@@ -25,10 +25,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ jobId: str
           return;
         }
 
-        setTimeout(sendEvents, 250);
+        setTimeout(() => void sendEvents(), 250);
       };
 
-      sendEvents();
+      void sendEvents();
     }
   });
 

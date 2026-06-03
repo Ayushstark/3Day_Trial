@@ -7,7 +7,7 @@ const allowedStages = new Set<PipelineStage>(["intent", "schema", "appSpec"]);
 
 export async function POST(request: Request, { params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
 
   if (!job) {
     return NextResponse.json({ error: "job not found" }, { status: 404 });
@@ -20,7 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
   }
 
   try {
-    const result = runManualRepair(job, body.stage as PipelineStage, typeof body.errorHint === "string" ? body.errorHint : undefined);
+    const result = await runManualRepair(job, body.stage as PipelineStage, typeof body.errorHint === "string" ? body.errorHint : undefined);
     return NextResponse.json({
       job: result.job,
       beforeErrors: result.beforeErrors,

@@ -13,12 +13,12 @@ import type { AppIntent, AppSpec, DataSchema, ValidationError } from "@/lib/type
 import { validateAppSpec, validateDataSchema, validateIntent } from "@/lib/validation/validate";
 
 export async function runIntentStage(jobId: string): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) {
     return;
   }
 
-  updateJob(jobId, (current) => pushEvent(setStage(current, "intent", "running"), { type: "stage_start", stage: "intent" }));
+  await updateJob(jobId, (current) => pushEvent(setStage(current, "intent", "running"), { type: "stage_start", stage: "intent" }));
 
   const start = performance.now();
   const route = MODEL_ROUTES.intent.primary;
@@ -38,7 +38,7 @@ export async function runIntentStage(jobId: string): Promise<void> {
     const provider = aiResult ? aiResult.provider : route.provider;
     const model = aiResult ? aiResult.model : route.model;
 
-    updateJob(jobId, (current) => {
+    await updateJob(jobId, (current) => {
       const next = {
         ...current,
         intent,
@@ -78,11 +78,11 @@ export async function runIntentStage(jobId: string): Promise<void> {
     });
 
     if (validationErrors.length === 0) {
-      void runSchemaStage(jobId, intent);
+      await runSchemaStage(jobId, intent);
     }
   } catch (error) {
     const latencyMs = Math.round(performance.now() - start);
-    updateJob(jobId, (current) =>
+    await updateJob(jobId, (current) =>
       pushEvent(setStage(current, "intent", "failed"), {
         type: "stage_failed",
         stage: "intent",
@@ -96,12 +96,12 @@ export async function runIntentStage(jobId: string): Promise<void> {
 }
 
 export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) {
     return;
   }
 
-  updateJob(jobId, (current) => pushEvent(setStage(current, "schema", "running"), { type: "stage_start", stage: "schema" }));
+  await updateJob(jobId, (current) => pushEvent(setStage(current, "schema", "running"), { type: "stage_start", stage: "schema" }));
 
   const start = performance.now();
   const route = MODEL_ROUTES.schema.primary;
@@ -121,7 +121,7 @@ export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<
     const provider = aiResult ? aiResult.provider : route.provider;
     const model = aiResult ? aiResult.model : route.model;
 
-    updateJob(jobId, (current) => {
+    await updateJob(jobId, (current) => {
       const next = {
         ...current,
         dataSchema: schema,
@@ -163,11 +163,11 @@ export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<
     });
 
     if (validationErrors.length === 0) {
-      void runAppSpecStage(jobId, intent, schema);
+      await runAppSpecStage(jobId, intent, schema);
     }
   } catch (error) {
     const latencyMs = Math.round(performance.now() - start);
-    updateJob(jobId, (current) =>
+    await updateJob(jobId, (current) =>
       pushEvent(setStage(current, "schema", "failed"), {
         type: "stage_failed",
         stage: "schema",
@@ -181,12 +181,12 @@ export async function runSchemaStage(jobId: string, intent: AppIntent): Promise<
 }
 
 export async function runAppSpecStage(jobId: string, intent: AppIntent, dataSchema: DataSchema): Promise<void> {
-  const job = getJob(jobId);
+  const job = await getJob(jobId);
   if (!job) {
     return;
   }
 
-  updateJob(jobId, (current) => pushEvent(setStage(current, "appSpec", "running"), { type: "stage_start", stage: "appSpec" }));
+  await updateJob(jobId, (current) => pushEvent(setStage(current, "appSpec", "running"), { type: "stage_start", stage: "appSpec" }));
 
   const start = performance.now();
   const route = MODEL_ROUTES.appSpec.primary;
@@ -206,7 +206,7 @@ export async function runAppSpecStage(jobId: string, intent: AppIntent, dataSche
     const provider = aiResult ? aiResult.provider : route.provider;
     const model = aiResult ? aiResult.model : route.model;
 
-    updateJob(jobId, (current) => {
+    await updateJob(jobId, (current) => {
       const next = {
         ...current,
         appSpec,
@@ -255,7 +255,7 @@ export async function runAppSpecStage(jobId: string, intent: AppIntent, dataSche
     });
   } catch (error) {
     const latencyMs = Math.round(performance.now() - start);
-    updateJob(jobId, (current) =>
+    await updateJob(jobId, (current) =>
       pushEvent(setStage(current, "appSpec", "failed"), {
         type: "stage_failed",
         stage: "appSpec",
