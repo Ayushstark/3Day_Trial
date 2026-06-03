@@ -78,19 +78,7 @@ export const relationSchema = z.preprocess((value) => {
 
   const relation = value as Record<string, unknown>;
   const target = relation.target ?? relation.targetEntity ?? relation.relatedEntity ?? relation.entity ?? relation.model;
-  const rawType = String(relation.type ?? relation.relationType ?? relation.cardinality ?? "").toLowerCase();
-  const type =
-    rawType.includes("many") && rawType.includes("one")
-      ? rawType.startsWith("many")
-        ? "belongsTo"
-        : "hasMany"
-      : rawType.includes("belongs")
-        ? "belongsTo"
-        : rawType.includes("one")
-          ? "hasOne"
-          : rawType.includes("has_many") || rawType.includes("hasmany")
-            ? "hasMany"
-            : relation.type;
+  const type = normalizeRelationType(relation.type ?? relation.relationType ?? relation.cardinality ?? relation.kind);
 
   const targetText = typeof target === "string" ? target : "unknown";
   const fallbackForeignKey = `${targetText.charAt(0).toLowerCase()}${targetText.slice(1)}Id`;
@@ -302,6 +290,41 @@ function normalizeComponent(component: string): "table" | "form" | "chart" | "ca
     return "chart";
   }
   return "card";
+}
+
+function normalizeRelationType(value: unknown): "hasMany" | "belongsTo" | "hasOne" {
+  const rawType = extractStringValue(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+  if (
+    rawType.includes("belongs") ||
+    rawType.includes("many_to_one") ||
+    rawType.includes("n_to_1") ||
+    rawType.includes("n:1") ||
+    rawType.includes("*:1") ||
+    rawType === "m:1" ||
+    rawType === "many_one" ||
+    rawType === "parent"
+  ) {
+    return "belongsTo";
+  }
+
+  if (
+    rawType.includes("has_many") ||
+    rawType.includes("one_to_many") ||
+    rawType.includes("1_to_n") ||
+    rawType.includes("1:n") ||
+    rawType.includes("1:*") ||
+    rawType.includes("many") ||
+    rawType === "children" ||
+    rawType === "collection"
+  ) {
+    return "hasMany";
+  }
+
+  return "hasOne";
 }
 
 function normalizeHttpMethod(value: unknown): "GET" | "POST" | "PUT" | "PATCH" | "DELETE" {
