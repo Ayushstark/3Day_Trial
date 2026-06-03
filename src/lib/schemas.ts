@@ -160,7 +160,7 @@ export const apiEndpointSchema = z.preprocess((value) => {
   return {
     ...endpoint,
     path: endpoint.path ?? endpoint.route ?? endpoint.url ?? "/api/records",
-    method: typeof endpoint.method === "string" ? endpoint.method.toUpperCase() : endpoint.method,
+    method: normalizeHttpMethod(endpoint.method ?? endpoint.httpMethod ?? endpoint.verb ?? endpoint.methods),
     handlerDescription: endpoint.handlerDescription ?? endpoint.handler ?? endpoint.description ?? "Generated API handler.",
     boundEntity: endpoint.boundEntity ?? endpoint.entity ?? endpoint.model ?? "User",
     authRequired: coerceBoolean(endpoint.authRequired ?? endpoint.requiresAuth ?? endpoint.auth, true),
@@ -297,6 +297,38 @@ function normalizeComponent(component: string): "table" | "form" | "chart" | "ca
     return "chart";
   }
   return "card";
+}
+
+function normalizeHttpMethod(value: unknown): "GET" | "POST" | "PUT" | "PATCH" | "DELETE" {
+  const method = extractStringValue(value).toUpperCase();
+
+  if (method.includes("DELETE") || method === "DEL" || method.includes("DESTROY") || method.includes("REMOVE")) {
+    return "DELETE";
+  }
+  if (method.includes("PATCH") || method.includes("PARTIAL")) {
+    return "PATCH";
+  }
+  if (method.includes("PUT") || method.includes("UPDATE") || method.includes("EDIT")) {
+    return "PUT";
+  }
+  if (method.includes("POST") || method.includes("CREATE") || method.includes("ADD") || method.includes("SUBMIT")) {
+    return "POST";
+  }
+  return "GET";
+}
+
+function extractStringValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return extractStringValue(value[0] ?? "");
+  }
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    return extractStringValue(record.method ?? record.value ?? record.name ?? record.type ?? record.id ?? "");
+  }
+  return "";
 }
 
 function coerceBoolean(value: unknown, fallback: boolean): boolean {
