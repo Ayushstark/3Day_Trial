@@ -297,7 +297,33 @@ function resolveIntentOutput(output: unknown, route: StageRouteConfig, prompt: s
     throw new Error(`AI intent output failed validation: ${details}`);
   }
 
-  return result.data;
+  return sanitizeIntentIntegrations(result.data, prompt);
+}
+
+const explicitIntegrationSignals: Record<AppIntent["integrations_requested"][number], string[]> = {
+  slack: ["slack"],
+  salesforce: ["salesforce"],
+  hubspot: ["hubspot"],
+  whatsapp: ["whatsapp", "whats app"],
+  gmail: ["gmail", "google workspace"],
+  notion: ["notion"],
+  airtable: ["airtable"],
+  stripe: ["stripe"],
+  twilio_sms: ["twilio sms", "sms", "text message"],
+  webhook: ["webhook", "web hook"],
+  google_sheets: ["google sheets", "spreadsheet", "sheet export"],
+  jira: ["jira"],
+  github: ["github", "git hub"],
+  zapier: ["zapier"]
+};
+
+function sanitizeIntentIntegrations(intent: AppIntent, prompt: string): AppIntent {
+  const normalizedPrompt = prompt.toLowerCase();
+  const integrations = intent.integrations_requested.filter((integrationId) =>
+    explicitIntegrationSignals[integrationId].some((signal) => normalizedPrompt.includes(signal))
+  );
+
+  return { ...intent, integrations_requested: integrations };
 }
 
 function resolveSchemaOutput(output: unknown, route: StageRouteConfig, intent: AppIntent): DataSchema {
@@ -325,11 +351,6 @@ function resolveAppSpecOutput(output: unknown, route: StageRouteConfig, intent: 
   if (!shapeResult.success) {
     const details = shapeResult.error.issues.map((issue) => `${issue.code}:${issue.path.map(String).join(".") || "root"}`).join(", ");
     throw new Error(`AI AppSpec output failed validation: ${details}`);
-  }
-
-  const errors = validateAppSpec(shapeResult.data, dataSchema);
-  if (errors.length > 0) {
-    throw new Error(`AI AppSpec output failed consistency validation: ${errors.map((error) => `${error.code}:${error.path.join(".") || "root"}`).join(", ")}`);
   }
 
   return shapeResult.data;

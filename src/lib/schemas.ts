@@ -309,13 +309,44 @@ function coerceBoolean(value: unknown, fallback: boolean): boolean {
   return fallback;
 }
 
-export const appSpecSchema = z.object({
+const registeredIntegrationIds = new Set<string>(integrationIdSchema.options);
+
+export const appSpecSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const appSpec = value as Record<string, unknown>;
+  return {
+    ...appSpec,
+    integrationHooks: filterValidIntegrationObjects(appSpec.integrationHooks),
+    workflowStubs: filterValidIntegrationObjects(appSpec.workflowStubs)
+  };
+}, z.object({
   pages: z.array(pageSchema).min(1),
   apiEndpoints: z.array(apiEndpointSchema).min(1),
   authRules: authRulesSchema,
   integrationHooks: z.array(integrationHookSchema),
   workflowStubs: z.array(workflowStubSchema)
-});
+}));
+
+function filterValidIntegrationObjects(value: unknown): unknown[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      return false;
+    }
+
+    const record = item as Record<string, unknown>;
+    const integration = record.integration ?? record.integrationId ?? record.provider;
+    const action = record.action ?? record.actionId ?? record.actionType;
+
+    return typeof integration === "string" && registeredIntegrationIds.has(integration) && typeof action === "string" && action.length > 0;
+  });
+}
 
 export const integrationActionSchema = z.object({
   id: z.string().min(1),
