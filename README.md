@@ -22,6 +22,31 @@ https://3-day-trial.vercel.app
 - Redis/KV-backed job persistence for Vercel when KV env vars are configured, with local in-memory fallback.
 - Final deployed evaluation: `11/12` prompts passed, `91.67%` success rate.
 
+## Tech Stack
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 18, Next.js App Router, TypeScript, Tailwind CSS, Lucide React icons |
+| Backend/API | Next.js API routes, TypeScript, server-side route handlers |
+| Streaming | Server-Sent Events through `GET /api/generate/:jobId/stream` |
+| AI Gateway | Provider adapters for OpenAI, Groq, Gemini, Google AI, DeepSeek, OpenRouter, and Mistral |
+| Validation | Zod schemas for `AppIntent`, `DataSchema`, `AppSpec`, integrations, repairs, and events |
+| Repair/Normalization | Custom TypeScript repair engine for malformed JSON shape, schema consistency, auth rules, relations, pages, APIs, and integration references |
+| Persistence | Vercel KV / Upstash Redis via REST API, with local in-memory fallback |
+| Evaluation | Node.js evaluation runner over the deployed API, writing `evaluation-results.json` |
+| Deployment | Vercel fullstack deployment for frontend and backend routes |
+
+```mermaid
+flowchart TB
+  UI["React + Tailwind UI"] --> API["Next.js API Routes"]
+  API --> SSE["SSE Stage Stream"]
+  API --> AI["Multi-Provider AI Gateway"]
+  AI --> VAL["Zod Validation + Repair"]
+  VAL --> STORE["Vercel KV / Upstash Redis"]
+  STORE --> UI
+  EVAL["Node Evaluation Runner"] --> API
+```
+
 ## Quick Start
 
 ```powershell
