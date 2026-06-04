@@ -1,7 +1,7 @@
 {
-  "startedAt": "2026-06-02T16:53:08.452Z",
-  "completedAt": "2026-06-02T16:54:33.354Z",
-  "baseUrl": "http://localhost:3000",
+  "startedAt": "2026-06-04T13:23:39.593Z",
+  "completedAt": "2026-06-04T13:52:31.629Z",
+  "baseUrl": "https://3-day-trial.vercel.app",
   "promptResults": [
     {
       "id": 1,
@@ -12,37 +12,37 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 7291,
+      "latencyMs": 135056,
       "latencyByStage": {
-        "intent": 1224,
-        "schema": 3062,
-        "appSpec": 2612
+        "intent": 335,
+        "schema": 71931,
+        "appSpec": 60583
       },
-      "estimatedTokenCost": 0.027331,
+      "estimatedTokenCost": 0.062407000000000004,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 37,
-          "outputTokens": 69,
-          "estimatedUsd": 0.000007
+          "inputTokens": 411,
+          "outputTokens": 79,
+          "estimatedUsd": 0.000027
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 69,
-          "outputTokens": 1521,
-          "estimatedUsd": 0.015383
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 269,
+          "outputTokens": 4652,
+          "estimatedUsd": 0.02845
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1521,
-          "outputTokens": 2008,
-          "estimatedUsd": 0.011941
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 6852,
+          "outputTokens": 3371,
+          "estimatedUsd": 0.03393
         }
       ],
       "expectedIntegrations": [
@@ -54,10 +54,12 @@
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 6,
-      "pageCount": 14,
-      "endpointCount": 30,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 13,
+      "pageCount": 17,
+      "endpointCount": 52,
+      "workflowCount": 0
     },
     {
       "id": 2,
@@ -68,37 +70,37 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 6197,
+      "latencyMs": 84190,
       "latencyByStage": {
-        "intent": 495,
-        "schema": 2894,
-        "appSpec": 2577
+        "intent": 408,
+        "schema": 35302,
+        "appSpec": 47288
       },
-      "estimatedTokenCost": 0.026323,
+      "estimatedTokenCost": 0.043185,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 38,
-          "outputTokens": 65,
-          "estimatedUsd": 0.000007
+          "inputTokens": 412,
+          "outputTokens": 84,
+          "estimatedUsd": 0.000027
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 65,
-          "outputTokens": 1439,
-          "estimatedUsd": 0.014552
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 274,
+          "outputTokens": 2693,
+          "estimatedUsd": 0.016706
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1439,
-          "outputTokens": 1993,
-          "estimatedUsd": 0.011764
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 4898,
+          "outputTokens": 2776,
+          "estimatedUsd": 0.026452
         }
       ],
       "expectedIntegrations": [
@@ -110,51 +112,44 @@
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 6,
-      "pageCount": 14,
-      "endpointCount": 30,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 9,
+      "pageCount": 15,
+      "endpointCount": 45,
+      "workflowCount": 0
     },
     {
       "id": 3,
       "category": "standard",
       "prompt": "Inventory system for a warehouse. Products, stock movements, suppliers. Low stock triggers an email alert.",
       "promptShort": "Inventory system for a warehouse. Products, stock movements, suppliers. Low stoc",
-      "success": true,
-      "failedStage": null,
+      "success": false,
+      "failedStage": "appSpec",
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 6030,
+      "latencyMs": 102630,
       "latencyByStage": {
-        "intent": 347,
-        "schema": 2635,
-        "appSpec": 2947
+        "intent": 453,
+        "schema": 42099
       },
-      "estimatedTokenCost": 0.026987999999999998,
+      "estimatedTokenCost": 0.01586,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 27,
-          "outputTokens": 70,
-          "estimatedUsd": 0.000007
+          "inputTokens": 401,
+          "outputTokens": 54,
+          "estimatedUsd": 0.000024
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 70,
-          "outputTokens": 1461,
-          "estimatedUsd": 0.014785
-        },
-        {
-          "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1461,
-          "outputTokens": 2074,
-          "estimatedUsd": 0.012196
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 244,
+          "outputTokens": 2558,
+          "estimatedUsd": 0.015836
         }
       ],
       "expectedIntegrations": [
@@ -166,10 +161,12 @@
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 6,
-      "pageCount": 14,
-      "endpointCount": 30,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": "AI AppSpec output failed validation: invalid_type:pages.0.name, invalid_type:pages.1.name, invalid_type:pages.2.name, invalid_type:pages.3.name, invalid_type:pages.4.name, invalid_type:pages.5.name, invalid_type:pages.6.name, invalid_type:pages.7.name, invalid_type:pages.8.name, invalid_type:pages.9.name, invalid_type:pages.10.name",
+      "entityCount": 9,
+      "pageCount": 0,
+      "endpointCount": 0,
+      "workflowCount": 0
     },
     {
       "id": 4,
@@ -180,37 +177,37 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 5717,
+      "latencyMs": 63074,
       "latencyByStage": {
-        "intent": 337,
-        "schema": 2772,
-        "appSpec": 2514
+        "intent": 380,
+        "schema": 32680,
+        "appSpec": 28926
       },
-      "estimatedTokenCost": 0.018976,
+      "estimatedTokenCost": 0.02199,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 35,
-          "outputTokens": 60,
-          "estimatedUsd": 0.000007
+          "inputTokens": 409,
+          "outputTokens": 65,
+          "estimatedUsd": 0.000026
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 60,
-          "outputTokens": 983,
-          "estimatedUsd": 0.00998
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 255,
+          "outputTokens": 1038,
+          "estimatedUsd": 0.006738
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 983,
-          "outputTokens": 1552,
-          "estimatedUsd": 0.008989
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 3224,
+          "outputTokens": 1463,
+          "estimatedUsd": 0.015226
         }
       ],
       "expectedIntegrations": [
@@ -222,10 +219,12 @@
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 4,
-      "pageCount": 10,
-      "endpointCount": 20,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 5,
+      "pageCount": 5,
+      "endpointCount": 25,
+      "workflowCount": 0
     },
     {
       "id": 5,
@@ -236,37 +235,37 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 6237,
+      "latencyMs": 93352,
       "latencyByStage": {
-        "intent": 715,
-        "schema": 2745,
-        "appSpec": 2640
+        "intent": 304,
+        "schema": 35877,
+        "appSpec": 56025
       },
-      "estimatedTokenCost": 0.022683000000000002,
+      "estimatedTokenCost": 0.04886,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 26,
-          "outputTokens": 65,
-          "estimatedUsd": 0.000006
+          "inputTokens": 400,
+          "outputTokens": 100,
+          "estimatedUsd": 0.000028
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 65,
-          "outputTokens": 1184,
-          "estimatedUsd": 0.012002
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 290,
+          "outputTokens": 3137,
+          "estimatedUsd": 0.019402
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1184,
-          "outputTokens": 1839,
-          "estimatedUsd": 0.010675
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 5358,
+          "outputTokens": 3119,
+          "estimatedUsd": 0.02943
         }
       ],
       "expectedIntegrations": [
@@ -274,16 +273,18 @@
         "gmail"
       ],
       "detectedIntegrations": [
-        "gmail",
-        "stripe"
+        "stripe",
+        "gmail"
       ],
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 5,
-      "pageCount": 12,
-      "endpointCount": 25,
-      "workflowCount": 2
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 10,
+      "pageCount": 13,
+      "endpointCount": 55,
+      "workflowCount": 0
     },
     {
       "id": 6,
@@ -292,39 +293,41 @@
       "promptShort": "Event management platform. Organizers create events, attendees register, QR chec",
       "success": true,
       "failedStage": null,
-      "repairStrategyUsed": [],
+      "repairStrategyUsed": [
+        "consistency"
+      ],
       "retryCount": 0,
-      "latencyMs": 8628,
+      "latencyMs": 82020,
       "latencyByStage": {
-        "intent": 1188,
-        "schema": 3441,
-        "appSpec": 3910
+        "intent": 431,
+        "schema": 44207,
+        "appSpec": 36339
       },
-      "estimatedTokenCost": 0.021437,
+      "estimatedTokenCost": 0.031706,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 31,
-          "outputTokens": 60,
-          "estimatedUsd": 0.000006
+          "inputTokens": 405,
+          "outputTokens": 75,
+          "estimatedUsd": 0.000026
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 60,
-          "outputTokens": 1117,
-          "estimatedUsd": 0.01132
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 265,
+          "outputTokens": 1722,
+          "estimatedUsd": 0.010862
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1117,
-          "outputTokens": 1743,
-          "estimatedUsd": 0.010111
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 3917,
+          "outputTokens": 2164,
+          "estimatedUsd": 0.020818
         }
       ],
       "expectedIntegrations": [
@@ -336,10 +339,12 @@
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 5,
-      "pageCount": 12,
-      "endpointCount": 25,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 8,
+      "pageCount": 11,
+      "endpointCount": 35,
+      "workflowCount": 0
     },
     {
       "id": 7,
@@ -349,38 +354,38 @@
       "success": true,
       "failedStage": null,
       "repairStrategyUsed": [],
-      "retryCount": 0,
-      "latencyMs": 6615,
+      "retryCount": 1,
+      "latencyMs": 93298,
       "latencyByStage": {
-        "intent": 622,
-        "schema": 3123,
-        "appSpec": 2743
+        "intent": 367,
+        "schema": 35962,
+        "appSpec": 55784
       },
-      "estimatedTokenCost": 0.020593,
+      "estimatedTokenCost": 0.04368,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 28,
-          "outputTokens": 64,
-          "estimatedUsd": 0.000007
+          "inputTokens": 402,
+          "outputTokens": 72,
+          "estimatedUsd": 0.000026
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 64,
-          "outputTokens": 1129,
-          "estimatedUsd": 0.01145
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 262,
+          "outputTokens": 2663,
+          "estimatedUsd": 0.016502
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1129,
-          "outputTokens": 1545,
-          "estimatedUsd": 0.009136
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 4855,
+          "outputTokens": 2907,
+          "estimatedUsd": 0.027152
         }
       ],
       "expectedIntegrations": [
@@ -388,16 +393,18 @@
         "google_sheets"
       ],
       "detectedIntegrations": [
-        "google_sheets",
-        "jira"
+        "jira",
+        "google_sheets"
       ],
       "integrationsCorrectlyDetected": true,
       "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 4,
-      "pageCount": 10,
-      "endpointCount": 20,
-      "workflowCount": 2
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 9,
+      "pageCount": 11,
+      "endpointCount": 50,
+      "workflowCount": 0
     },
     {
       "id": 8,
@@ -408,49 +415,49 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 5932,
+      "latencyMs": 44334,
       "latencyByStage": {
-        "intent": 673,
-        "schema": 2536,
-        "appSpec": 2654
+        "intent": 302,
+        "schema": 22767,
+        "appSpec": 20205
       },
-      "estimatedTokenCost": 0.008126999999999999,
+      "estimatedTokenCost": 0.023365999999999998,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 2,
-          "outputTokens": 68,
-          "estimatedUsd": 0.000006
+          "inputTokens": 376,
+          "outputTokens": 42,
+          "estimatedUsd": 0.000022
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 68,
-          "outputTokens": 401,
-          "estimatedUsd": 0.00418
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 232,
+          "outputTokens": 1393,
+          "estimatedUsd": 0.008822
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 401,
-          "outputTokens": 688,
-          "estimatedUsd": 0.003941
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 3556,
+          "outputTokens": 1235,
+          "estimatedUsd": 0.014522
         }
       ],
       "expectedIntegrations": [],
       "detectedIntegrations": [],
       "integrationsCorrectlyDetected": true,
-      "assumptions": [
-        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification."
-      ],
+      "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 2,
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 5,
       "pageCount": 6,
-      "endpointCount": 10,
+      "endpointCount": 22,
       "workflowCount": 0
     },
     {
@@ -462,53 +469,51 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 6636,
+      "latencyMs": 125030,
       "latencyByStage": {
-        "intent": 494,
-        "schema": 2701,
-        "appSpec": 3303
+        "intent": 576,
+        "schema": 88860,
+        "appSpec": 34442
       },
-      "estimatedTokenCost": 0.015681,
+      "estimatedTokenCost": 0.028261,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 10,
-          "outputTokens": 85,
-          "estimatedUsd": 0.000007
+          "inputTokens": 384,
+          "outputTokens": 72,
+          "estimatedUsd": 0.000025
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 85,
-          "outputTokens": 801,
-          "estimatedUsd": 0.008223
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 262,
+          "outputTokens": 1413,
+          "estimatedUsd": 0.009002
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 801,
-          "outputTokens": 1290,
-          "estimatedUsd": 0.007451
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 3605,
+          "outputTokens": 2004,
+          "estimatedUsd": 0.019234
         }
       ],
       "expectedIntegrations": [
         "notion"
       ],
-      "detectedIntegrations": [
-        "notion"
-      ],
-      "integrationsCorrectlyDetected": true,
-      "assumptions": [
-        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification."
-      ],
+      "detectedIntegrations": [],
+      "integrationsCorrectlyDetected": false,
+      "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 4,
-      "pageCount": 10,
-      "endpointCount": 20,
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 7,
+      "pageCount": 7,
+      "endpointCount": 33,
       "workflowCount": 0
     },
     {
@@ -519,38 +524,38 @@
       "success": true,
       "failedStage": null,
       "repairStrategyUsed": [],
-      "retryCount": 0,
-      "latencyMs": 5879,
+      "retryCount": 1,
+      "latencyMs": 118322,
       "latencyByStage": {
-        "intent": 408,
-        "schema": 2660,
-        "appSpec": 2705
+        "intent": 568,
+        "schema": 66781,
+        "appSpec": 49885
       },
-      "estimatedTokenCost": 0.022219,
+      "estimatedTokenCost": 0.045141,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 29,
-          "outputTokens": 127,
-          "estimatedUsd": 0.000012
+          "inputTokens": 403,
+          "outputTokens": 138,
+          "estimatedUsd": 0.000031
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 127,
-          "outputTokens": 1184,
-          "estimatedUsd": 0.012157
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 328,
+          "outputTokens": 2848,
+          "estimatedUsd": 0.017744
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 1184,
-          "outputTokens": 1714,
-          "estimatedUsd": 0.01005
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 5106,
+          "outputTokens": 2859,
+          "estimatedUsd": 0.027366
         }
       ],
       "expectedIntegrations": [
@@ -561,14 +566,15 @@
       ],
       "integrationsCorrectlyDetected": true,
       "assumptions": [
-        "Authentication and role-based permissions are included in the AppSpec, while live auth implementation is out of scope.",
-        "Overscoped platform features are reduced to a web MVP with extensible AppSpec stubs."
+        "Prompt blends multiple product domains, so each detected capability is modeled as a first-class module."
       ],
       "validationErrorCount": 0,
-      "entityCount": 5,
-      "pageCount": 12,
-      "endpointCount": 25,
-      "workflowCount": 1
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 11,
+      "pageCount": 20,
+      "endpointCount": 46,
+      "workflowCount": 0
     },
     {
       "id": 11,
@@ -579,50 +585,49 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 5813,
+      "latencyMs": 129189,
       "latencyByStage": {
-        "intent": 405,
-        "schema": 2665,
-        "appSpec": 2604
+        "intent": 606,
+        "schema": 72130,
+        "appSpec": 54700
       },
-      "estimatedTokenCost": 0.01693,
+      "estimatedTokenCost": 0.058154,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 15,
-          "outputTokens": 101,
-          "estimatedUsd": 0.000009
+          "inputTokens": 389,
+          "outputTokens": 56,
+          "estimatedUsd": 0.000024
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 101,
-          "outputTokens": 919,
-          "estimatedUsd": 0.009442
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 246,
+          "outputTokens": 4097,
+          "estimatedUsd": 0.025074
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 919,
-          "outputTokens": 1266,
-          "estimatedUsd": 0.007479
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 6274,
+          "outputTokens": 3418,
+          "estimatedUsd": 0.033056
         }
       ],
       "expectedIntegrations": [],
       "detectedIntegrations": [],
       "integrationsCorrectlyDetected": true,
-      "assumptions": [
-        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification.",
-        "Conflicting domains are resolved by using CRM as the primary app type and project tracking as a feature area."
-      ],
+      "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 4,
-      "pageCount": 10,
-      "endpointCount": 20,
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 12,
+      "pageCount": 15,
+      "endpointCount": 57,
       "workflowCount": 0
     },
     {
@@ -634,50 +639,49 @@
       "failedStage": null,
       "repairStrategyUsed": [],
       "retryCount": 0,
-      "latencyMs": 5975,
+      "latencyMs": 117357,
       "latencyByStage": {
-        "intent": 631,
-        "schema": 2609,
-        "appSpec": 2640
+        "intent": 487,
+        "schema": 46160,
+        "appSpec": 69639
       },
-      "estimatedTokenCost": 0.014048000000000001,
+      "estimatedTokenCost": 0.05012,
       "costBreakdown": [
         {
           "stage": "intent",
           "provider": "groq",
           "model": "llama-3.1-8b-instant",
-          "inputTokens": 8,
-          "outputTokens": 105,
-          "estimatedUsd": 0.000009
+          "inputTokens": 382,
+          "outputTokens": 62,
+          "estimatedUsd": 0.000024
         },
         {
           "stage": "schema",
-          "provider": "openai",
-          "model": "gpt-4o",
-          "inputTokens": 105,
-          "outputTokens": 789,
-          "estimatedUsd": 0.008153
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 252,
+          "outputTokens": 2822,
+          "estimatedUsd": 0.017436
         },
         {
           "stage": "appSpec",
-          "provider": "gemini",
-          "model": "gemini-1.5-pro",
-          "inputTokens": 789,
-          "outputTokens": 980,
-          "estimatedUsd": 0.005886
+          "provider": "mistral",
+          "model": "mistral-large-latest",
+          "inputTokens": 5005,
+          "outputTokens": 3775,
+          "estimatedUsd": 0.03266
         }
       ],
       "expectedIntegrations": [],
       "detectedIntegrations": [],
       "integrationsCorrectlyDetected": true,
-      "assumptions": [
-        "Prompt is vague, so the pipeline proceeds with a small MVP instead of blocking for clarification.",
-        "Smart features are interpreted as prioritization, reminders, and simple automation suggestions."
-      ],
+      "assumptions": [],
       "validationErrorCount": 0,
-      "entityCount": 3,
-      "pageCount": 8,
-      "endpointCount": 15,
+      "validationErrorCodes": [],
+      "failureMessage": null,
+      "entityCount": 11,
+      "pageCount": 14,
+      "endpointCount": 63,
       "workflowCount": 0
     }
   ],
@@ -685,14 +689,10 @@
     {
       "stage": "schema",
       "errorHint": "missing_tenant_id",
-      "beforeErrorCodes": [
-        "missing_tenant_id"
-      ],
+      "beforeErrorCodes": [],
       "afterErrorCodes": [],
-      "repairStrategies": [
-        "field"
-      ],
-      "success": true
+      "repairStrategies": [],
+      "success": false
     },
     {
       "stage": "schema",
@@ -712,6 +712,7 @@
       "stage": "schema",
       "errorHint": "missing_inverse_relation",
       "beforeErrorCodes": [
+        "missing_inverse_relation",
         "missing_inverse_relation"
       ],
       "afterErrorCodes": [],
@@ -737,38 +738,31 @@
     {
       "stage": "appSpec",
       "errorHint": "unknown_workflow_action",
-      "beforeErrorCodes": [
-        "unknown_workflow_action"
-      ],
+      "beforeErrorCodes": [],
       "afterErrorCodes": [],
-      "repairStrategies": [
-        "consistency"
-      ],
-      "success": true
+      "repairStrategies": [],
+      "success": false
     },
     {
       "stage": "appSpec",
       "errorHint": "unknown_workflow_entity",
-      "beforeErrorCodes": [
-        "unknown_workflow_entity"
-      ],
+      "beforeErrorCodes": [],
       "afterErrorCodes": [],
-      "repairStrategies": [
-        "consistency"
-      ],
-      "success": true
+      "repairStrategies": [],
+      "success": false
     }
   ],
   "summary": {
-    "successCount": 12,
+    "successCount": 11,
     "totalPrompts": 12,
-    "successRate": 100,
+    "successRate": 91.67,
     "commonFailureType": "none",
-    "weakestStage": "none",
-    "malformedRepairPassCount": 6,
+    "weakestStage": "appSpec",
+    "malformedRepairPassCount": 3,
     "malformedRepairTotal": 6,
-    "totalEstimatedTokenCost": 0.241336,
-    "averageLatencyMs": 6413,
-    "text": "Evaluation completed on 12 prompts. Success rate was 12/12 (100%). Average latency was 6413 ms and estimated total token cost was $0.241336. Most common failure type: none. Weakest stage: none. Malformed repair fixtures passed 6/6. The next concrete fix is to run the suite with live OpenAI, Groq, and Gemini keys enabled, then tune prompts for any provider-specific validation failures."
+    "totalEstimatedTokenCost": 0.47273,
+    "averageLatencyMs": 98988,
+    "text": "Evaluation completed on 12 prompts. Success rate was 11/12 (91.67%). Average latency was 98988 ms and estimated total token cost was $0.472730. Most common failure type: none. Weakest stage: appSpec. Malformed repair fixtures passed 3/6. The next concrete fix is to rerun the suite on the deployed multi-provider setup, then tune any provider-specific validation failures.",
+    "submissionSummary": "The evaluation suite ran 12 prompts covering standard and edge-case app requests. 11 prompts completed successfully, giving a success rate of 11/12 (91.67%). The average latency was 98988 ms and the estimated total token cost was $0.472730. The most common failure type was none, and the weakest stage was appSpec. Malformed repair fixtures passed 3/6, demonstrating targeted schema and AppSpec repair paths rather than blind full retries. The next concrete improvement is to keep expanding provider-output normalizers and rerun the suite after quota resets so failures caused by rate limits are separated from schema-quality issues."
   }
 }

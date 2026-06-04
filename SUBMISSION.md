@@ -8,7 +8,7 @@
 
 ## Live URL
 
-- Deployed app: `https://ai-engineer-3-day-trial-task-fronte.vercel.app/`
+- Deployed app: `https://3-day-trial.vercel.app`
 - Frontend and backend are deployed together as a fullstack Next.js app.
 - Generation API routes are under `/api/generate`.
 
@@ -20,18 +20,22 @@
 
 ## 300-Word Summary
 
-The evaluation suite ran 12 required prompts covering standard app requests and edge cases. All 12 prompts completed successfully in the recorded run, giving a 12/12 success rate (100%). The average latency was 6413 ms and the estimated total token cost was $0.241336. The most common failure type was `none`, and the weakest stage was `none` for that run. Malformed repair fixtures passed 6/6, covering schema repairs such as missing `tenantId`, unknown relation targets, missing inverse relations, and AppSpec repairs such as page/API gaps, invalid workflow actions, and unknown workflow entities.
+This project implements the OneAtlas AppSpec Pipeline as a three-stage AI generation system: Intent Extraction, DataSchema Generation, and AppSpec Generation. The deployed API was evaluated against 12 required prompts covering standard business apps and edge cases. The final run completed 11/12 prompts successfully, producing a 91.67% success rate. Average latency was 98,988 ms, and estimated total model cost was $0.472730.
 
-The pipeline is intentionally multi-stage rather than a single LLM call. It extracts `AppIntent`, converts that into `DataSchema`, and then generates a validated `AppSpec`. Each stage has typed schemas, validation, repair logging, cost tracking, latency tracking, and provider failover. The integration registry includes concrete metadata and action schemas for Slack, WhatsApp/Twilio, Gmail, Stripe, and Jira, while the remaining registry integrations are stubbed with clear interfaces. The main production hardening improvement already added after the first evaluation is Redis-backed job storage for Vercel reliability. The next concrete fix is to rerun the full evaluation on the final deployed multi-provider setup and tune any provider-specific output normalization issues found by unseen tester prompts.
+The pipeline uses a configurable multi-provider gateway with automatic failover across available providers. In the final evaluation, Groq handled fast intent extraction while Mistral was used heavily for schema and AppSpec generation. Each stage validates strict JSON output and applies normalization/repair logic for common provider issues such as malformed entity lists, sparse schema responses, invalid relation shapes, invalid page layouts, and incomplete auth rules.
+
+The frontend exposes prompt entry, live stage progress, generated AppIntent, DataSchema, AppSpec output, validation errors, repair logs, and the integration registry. The required API routes are implemented for generation, job lookup, SSE streaming, manual repair, and integration discovery. The integration registry includes implemented descriptors for Slack, WhatsApp via Twilio, Gmail/Google Workspace, Stripe, and Jira, plus additional stubbed providers for future extension.
+
+The evaluation also ran malformed repair fixtures. 3/6 repair checks passed, showing targeted schema/AppSpec repair behavior for relation and page/API consistency issues. The remaining weakness is AppSpec provider formatting: one inventory prompt failed because generated page names were not valid strings. Overall, the submitted system demonstrates a working multi-stage AI pipeline with validation, failover, repair handling, cost logging, and a deployed UI/API.
 
 ## Final Pre-Submission Steps
 
-1. Redeploy the latest GitHub commit on Vercel.
+1. Confirm Vercel is deployed from the latest GitHub commit.
 2. Confirm all AI keys and Redis/KV env vars are present in Vercel.
-3. Run `npm.cmd run evaluate` locally against the deployed URL:
+3. Run `npm.cmd run evaluate` locally against the deployed URL if a fresh log is needed:
 
 ```powershell
-$env:EVAL_BASE_URL="https://ai-engineer-3-day-trial-task-fronte.vercel.app"
+$env:EVAL_BASE_URL="https://3-day-trial.vercel.app"
 npm.cmd run evaluate
 ```
 
