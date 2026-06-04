@@ -25,7 +25,7 @@ export function repairDataSchema(schema: DataSchema, errors: ValidationError[]):
     repairLog.push(makeLog("consistency", "missing_inverse_relation", "repaired", "Added inverse relations where a deterministic counterpart was missing."));
   }
 
-  return { schema: next, repairLog };
+  return { schema: addMissingInverseRelations(next), repairLog };
 }
 
 function addMissingTenantIds(schema: DataSchema): DataSchema {

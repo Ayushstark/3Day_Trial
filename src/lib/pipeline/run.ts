@@ -338,6 +338,10 @@ function resolveSchemaOutput(output: unknown, route: StageRouteConfig, intent: A
   const candidate = unwrapStageOutput(output, ["dataSchema", "schema", "output"]);
   const result = dataSchemaSchema.safeParse(candidate);
   if (!result.success) {
+    if (result.error.issues.some((issue) => issue.code === "too_small" && issue.path.includes("entities"))) {
+      return generateDataSchemaDeterministic(intent);
+    }
+
     const details = result.error.issues.map((issue) => `${issue.code}:${issue.path.map(String).join(".") || "root"}`).join(", ");
     throw new Error(`AI schema output failed validation: ${details}`);
   }
@@ -443,7 +447,51 @@ function ensureSchemaCoversIntent(schema: DataSchema, intent: AppIntent): DataSc
     }
   }
 
-  return dataSchemaSchema.parse({ entities });
+  return dataSchemaSchema.parse({ entities: enforceBidirectionalRelations(entities) });
+}
+
+function enforceBidirectionalRelations(entities: DataSchema["entities"]): DataSchema["entities"] {
+  const next = entities.map((entity) => ({
+    ...entity,
+    fields: [...entity.fields],
+    relations: [...entity.relations]
+  }));
+  const entityMap = new Map(next.map((entity) => [entity.name, entity]));
+
+  for (const entity of next) {
+    for (const relation of [...entity.relations]) {
+      const target = entityMap.get(relation.target);
+      if (!target) {
+        continue;
+      }
+
+      const inverseExists = target.relations.some((candidate) => candidate.target === entity.name);
+      if (inverseExists) {
+        continue;
+      }
+
+      const inverseType = relation.type === "belongsTo" ? "hasMany" : "belongsTo";
+      target.relations.push({
+        type: inverseType,
+        target: entity.name,
+        foreignKey: relation.foreignKey,
+        onDelete: relation.onDelete
+      });
+
+      if (inverseType === "belongsTo" && !target.fields.some((field) => field.name === relation.foreignKey)) {
+        target.fields.push({
+          name: relation.foreignKey,
+          type: "uuid",
+          nullable: relation.onDelete === "setNull",
+          isRelation: true,
+          isPrimary: false,
+          isUnique: false
+        });
+      }
+    }
+  }
+
+  return next;
 }
 
 function ensureAppSpecCoversSchema(appSpec: AppSpec, dataSchema: DataSchema): AppSpec {
