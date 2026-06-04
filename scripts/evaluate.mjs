@@ -97,25 +97,49 @@ async function main() {
   const promptResults = [];
 
   for (const item of prompts) {
-    const result = await evaluatePrompt(item);
+    const result = await safeEvaluatePrompt(item);
     promptResults.push(result);
     console.log(`${result.success ? "PASS" : "FAIL"} prompt ${item.id}: ${result.promptShort}`);
+    await writeEvaluationOutput(startedAt, promptResults, []);
   }
 
-  const malformedRepairChecks = await runMalformedRepairChecks();
+  const malformedRepairChecks = await safeRunMalformedRepairChecks();
   const summary = summarize(promptResults, malformedRepairChecks);
-  const output = {
-    startedAt,
-    completedAt: new Date().toISOString(),
-    baseUrl,
-    promptResults,
-    malformedRepairChecks,
-    summary
-  };
-
-  await writeFile("evaluation-results.json", `${JSON.stringify(output, null, 2)}\n`, "utf-8");
+  await writeEvaluationOutput(startedAt, promptResults, malformedRepairChecks, summary);
   console.log("Wrote evaluation-results.json");
   console.log(summary.text);
+}
+
+async function safeEvaluatePrompt(item) {
+  try {
+    return await evaluatePrompt(item);
+  } catch (error) {
+    return {
+      id: item.id,
+      category: item.category,
+      prompt: item.prompt,
+      promptShort: item.prompt.slice(0, 80),
+      success: false,
+      failedStage: "network_or_runner",
+      repairStrategyUsed: [],
+      retryCount: 0,
+      latencyMs: 0,
+      latencyByStage: {},
+      estimatedTokenCost: 0,
+      costBreakdown: [],
+      expectedIntegrations: item.expectedIntegrations,
+      detectedIntegrations: [],
+      integrationsCorrectlyDetected: false,
+      assumptions: [],
+      validationErrorCount: 0,
+      validationErrorCodes: [],
+      failureMessage: error instanceof Error ? error.message : String(error),
+      entityCount: 0,
+      pageCount: 0,
+      endpointCount: 0,
+      workflowCount: 0
+    };
+  }
 }
 
 async function evaluatePrompt(item) {
@@ -126,9 +150,11 @@ async function evaluatePrompt(item) {
   await runPromise.catch(() => undefined);
   const latencyMs = Math.round(performance.now() - started);
   const failedStage = findFailedStage(job);
+  const failedEvent = findFailedEvent(job);
   const detectedIntegrations = job.intent?.integrations_requested ?? [];
   const integrationsCorrectlyDetected = item.expectedIntegrations.every((integration) => detectedIntegrations.includes(integration));
   const estimatedTokenCost = sum(job.costBreakdown?.map((row) => row.estimatedUsd) ?? []);
+  const validationErrors = failedEvent?.error?.validationErrors ?? job.validationErrors ?? [];
 
   return {
     id: item.id,
@@ -148,11 +174,29 @@ async function evaluatePrompt(item) {
     integrationsCorrectlyDetected,
     assumptions: job.intent?.assumptions ?? [],
     validationErrorCount: job.validationErrors?.length ?? 0,
+    validationErrorCodes: validationErrors.map((error) => `${error.code}:${error.path?.join(".") ?? ""}`),
+    failureMessage: failedEvent?.error?.message ?? null,
     entityCount: job.dataSchema?.entities?.length ?? 0,
     pageCount: job.appSpec?.pages?.length ?? 0,
     endpointCount: job.appSpec?.apiEndpoints?.length ?? 0,
     workflowCount: job.appSpec?.workflowStubs?.length ?? 0
   };
+}
+
+async function safeRunMalformedRepairChecks() {
+  try {
+    return await runMalformedRepairChecks();
+  } catch (error) {
+    return malformedRepairFixtures.map((fixture) => ({
+      stage: fixture.stage,
+      errorHint: fixture.errorHint,
+      beforeErrorCodes: [],
+      afterErrorCodes: [],
+      repairStrategies: [],
+      success: false,
+      failureMessage: error instanceof Error ? error.message : String(error)
+    }));
+  }
 }
 
 async function runMalformedRepairChecks() {
@@ -178,6 +222,19 @@ async function runMalformedRepairChecks() {
   }
 
   return checks;
+}
+
+async function writeEvaluationOutput(startedAt, promptResults, malformedRepairChecks, summary = summarize(promptResults, malformedRepairChecks)) {
+  const output = {
+    startedAt,
+    completedAt: new Date().toISOString(),
+    baseUrl,
+    promptResults,
+    malformedRepairChecks,
+    summary
+  };
+
+  await writeFile("evaluation-results.json", `${JSON.stringify(output, null, 2)}\n`, "utf-8");
 }
 
 function summarize(promptResults, malformedRepairChecks) {
@@ -232,7 +289,7 @@ async function assertServerAvailable() {
 }
 
 async function postJson(path, body) {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetchWithRetry(`${baseUrl}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
@@ -249,7 +306,7 @@ async function postJson(path, body) {
 async function pollJob(jobId) {
   const deadline = Date.now() + 180000;
   while (Date.now() < deadline) {
-    const response = await fetch(`${baseUrl}/api/generate/${jobId}`);
+    const response = await fetchWithRetry(`${baseUrl}/api/generate/${jobId}`);
     const job = await response.json();
 
     if (job.stages?.appSpec === "complete" || job.stages?.intent === "failed" || job.stages?.schema === "failed" || job.stages?.appSpec === "failed") {
@@ -262,6 +319,33 @@ async function pollJob(jobId) {
   throw new Error(`Timed out waiting for job ${jobId}`);
 }
 
+async function fetchWithRetry(url, options = {}, retries = 3) {
+  let lastError;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const response = await fetch(url, options);
+      if ((response.status === 429 || response.status >= 500) && attempt < retries) {
+        await wait(1000 * (attempt + 1));
+        continue;
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      if (attempt >= retries) {
+        break;
+      }
+      await wait(1000 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function findFailedStage(job) {
   for (const stage of ["intent", "schema", "appSpec"]) {
     if (job.stages?.[stage] === "failed") {
@@ -269,6 +353,10 @@ function findFailedStage(job) {
     }
   }
   return null;
+}
+
+function findFailedEvent(job) {
+  return [...(job.events ?? [])].reverse().find((event) => event.type === "stage_failed") ?? null;
 }
 
 function unique(values) {
