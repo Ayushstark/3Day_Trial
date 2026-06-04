@@ -205,9 +205,10 @@ export const authRulesSchema = z.preprocess((value) => {
   }
 
   const auth = value as Record<string, unknown>;
+  const roles = normalizeAuthRoles(auth.roles ?? auth.roleNames ?? auth.userRoles);
   return {
-    roles: auth.roles ?? ["admin", "manager", "member"],
-    permissions: auth.permissions ?? auth.permissionMatrix ?? {}
+    roles,
+    permissions: normalizePermissionMatrix(auth.permissions ?? auth.permissionMatrix ?? auth.access ?? {}, roles)
   };
 }, z.object({
   roles: z.array(z.string().min(1)).min(1),
@@ -221,6 +222,82 @@ export const authRulesSchema = z.preprocess((value) => {
     )
   )
 }));
+
+function normalizeAuthRoles(value: unknown): string[] {
+  const rawRoles = Array.isArray(value) ? value : typeof value === "string" ? value.split(/[,\n]/) : [];
+  const roles = rawRoles
+    .map((role) => {
+      if (typeof role === "string") {
+        return role;
+      }
+      if (role && typeof role === "object" && !Array.isArray(role)) {
+        const record = role as Record<string, unknown>;
+        return String(record.name ?? record.id ?? record.role ?? record.label ?? "");
+      }
+      return "";
+    })
+    .map((role) => role.trim().toLowerCase().replace(/[\s-]+/g, "_"))
+    .filter(Boolean);
+
+  return Array.from(new Set(roles.length > 0 ? roles : ["admin", "manager", "member"]));
+}
+
+function normalizePermissionMatrix(value: unknown, roles: string[]): Record<string, Record<string, { read: boolean; write: boolean; delete: boolean }>> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const roleSet = new Set(roles);
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .map(([roleName, rawPermissions]) => [roleName.trim().toLowerCase().replace(/[\s-]+/g, "_"), rawPermissions] as const)
+      .filter(([roleName]) => roleSet.has(roleName))
+      .map(([roleName, rawPermissions]) => [roleName, normalizeEntityPermissions(rawPermissions)])
+      .filter(([, permissions]) => Object.keys(permissions).length > 0)
+  );
+}
+
+function normalizeEntityPermissions(value: unknown): Record<string, { read: boolean; write: boolean; delete: boolean }> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .map(([entityName, rawRule]) => [entityName, normalizePermissionRule(rawRule)] as const)
+      .filter(([entityName]) => entityName.trim().length > 0)
+  );
+}
+
+function normalizePermissionRule(value: unknown): { read: boolean; write: boolean; delete: boolean } {
+  if (Array.isArray(value)) {
+    const actions = value.map((item) => String(item).toLowerCase());
+    return {
+      read: actions.some((action) => action.includes("read") || action.includes("view") || action.includes("list")),
+      write: actions.some((action) => action.includes("write") || action.includes("create") || action.includes("update") || action.includes("edit")),
+      delete: actions.some((action) => action.includes("delete") || action.includes("remove"))
+    };
+  }
+
+  if (typeof value === "string") {
+    return normalizePermissionRule(value.split(/[,\s]+/));
+  }
+
+  if (typeof value === "boolean") {
+    return { read: value, write: value, delete: value };
+  }
+
+  if (value && typeof value === "object") {
+    const rule = value as Record<string, unknown>;
+    return {
+      read: coerceBoolean(rule.read ?? rule.canRead ?? rule.view ?? rule.list ?? rule.allowRead, true),
+      write: coerceBoolean(rule.write ?? rule.canWrite ?? rule.create ?? rule.update ?? rule.edit ?? rule.allowWrite, false),
+      delete: coerceBoolean(rule.delete ?? rule.canDelete ?? rule.remove ?? rule.destroy ?? rule.allowDelete, false)
+    };
+  }
+
+  return { read: true, write: false, delete: false };
+}
 
 export const integrationHookSchema = z.preprocess((value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
