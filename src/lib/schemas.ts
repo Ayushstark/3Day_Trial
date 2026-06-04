@@ -108,14 +108,60 @@ export const fieldTypeSchema = z.enum([
   "uuid"
 ]);
 
-export const entityFieldSchema = z.object({
+export const entityFieldSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const field = value as Record<string, unknown>;
+  const rawName = String(field.name ?? field.field ?? field.column ?? field.key ?? "metadata");
+  const rawType = String(field.type ?? field.dataType ?? field.kind ?? "string").toLowerCase();
+
+  return {
+    ...field,
+    name: rawName,
+    type: normalizeFieldType(rawType),
+    nullable: coerceBoolean(field.nullable ?? field.optional, false),
+    isRelation: coerceBoolean(field.isRelation ?? field.relation ?? field.foreignKey, false),
+    isPrimary: coerceBoolean(field.isPrimary ?? field.primary ?? field.primaryKey, false),
+    isUnique: coerceBoolean(field.isUnique ?? field.unique, false)
+  };
+}, z.object({
   name: z.string().min(1),
   type: fieldTypeSchema,
   nullable: z.boolean(),
   isRelation: z.boolean(),
   isPrimary: z.boolean(),
   isUnique: z.boolean()
-});
+}));
+
+function normalizeFieldType(value: string): z.infer<typeof fieldTypeSchema> {
+  if (value.includes("uuid") || value.includes("id")) {
+    return "uuid";
+  }
+  if (value.includes("int") || value.includes("float") || value.includes("decimal") || value.includes("number") || value.includes("money")) {
+    return "number";
+  }
+  if (value.includes("bool")) {
+    return "boolean";
+  }
+  if (value.includes("datetime") || value.includes("timestamp")) {
+    return "datetime";
+  }
+  if (value === "date" || value.includes("date")) {
+    return "date";
+  }
+  if (value.includes("enum") || value.includes("status")) {
+    return "enum";
+  }
+  if (value.includes("json") || value.includes("object")) {
+    return "json";
+  }
+  if (value.includes("text") || value.includes("description") || value.includes("body")) {
+    return "text";
+  }
+  return "string";
+}
 
 export const relationSchema = z.preprocess((value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -155,7 +201,7 @@ export const entitySchemaSchema = z.preprocess((value) => {
     ...entity,
     name,
     tableName: entity.tableName ?? entity.table_name ?? toLocalSnakeCase(`${name}s`),
-    fields: normalizeObjectArray(entity.fields ?? entity.columns ?? entity.properties),
+    fields: normalizeEntityFields(entity.fields ?? entity.columns ?? entity.properties),
     relations: normalizeObjectArray(entity.relations ?? entity.relationships ?? entity.associations)
   };
 }, z.object({
@@ -211,6 +257,37 @@ function normalizeObjectArray(value: unknown): unknown[] {
   return [];
 }
 
+function normalizeEntityFields(value: unknown): unknown[] {
+  const fields = normalizeObjectArray(value).map((field) => {
+    if (typeof field === "string") {
+      return { name: field, type: "string", nullable: false, isRelation: false, isPrimary: false, isUnique: false };
+    }
+    return field;
+  });
+  const fieldNames = new Set(
+    fields
+      .map((field) => (field && typeof field === "object" && !Array.isArray(field) ? String((field as Record<string, unknown>).name ?? "") : ""))
+      .filter(Boolean)
+  );
+
+  const requiredBaseFields = [
+    { name: "id", type: "uuid", nullable: false, isRelation: false, isPrimary: true, isUnique: true },
+    { name: "tenantId", type: "uuid", nullable: false, isRelation: false, isPrimary: false, isUnique: false }
+  ];
+
+  for (const field of requiredBaseFields) {
+    if (!fieldNames.has(field.name)) {
+      fields.unshift(field);
+    }
+  }
+
+  if (fields.length < 2) {
+    fields.push({ name: "name", type: "string", nullable: false, isRelation: false, isPrimary: false, isUnique: false });
+  }
+
+  return fields;
+}
+
 function toLocalSnakeCase(value: string): string {
   const normalized = value
     .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
@@ -245,7 +322,7 @@ export const pageSchema = z.preprocess((value) => {
   return {
     ...page,
     route: page.route ?? page.path ?? page.url ?? `/app/${String(boundEntity).toLowerCase()}`,
-    layout: page.layout ?? inferLayoutFromName(String(page.name ?? "")),
+    layout: normalizeLayout(page.layout ?? page.type ?? page.template ?? inferLayoutFromName(String(page.name ?? ""))),
     boundEntity,
     components
   };
@@ -463,6 +540,20 @@ function inferLayoutFromName(name: string): "list" | "detail" | "dashboard" | "s
     return "settings";
   }
   if (lower.includes("detail") || lower.includes("profile")) {
+    return "detail";
+  }
+  return "list";
+}
+
+function normalizeLayout(value: unknown): "list" | "detail" | "dashboard" | "settings" {
+  const layout = String(value ?? "").toLowerCase();
+  if (layout.includes("dashboard") || layout.includes("analytics") || layout.includes("overview")) {
+    return "dashboard";
+  }
+  if (layout.includes("setting") || layout.includes("admin")) {
+    return "settings";
+  }
+  if (layout.includes("detail") || layout.includes("profile") || layout.includes("single") || layout.includes("view")) {
     return "detail";
   }
   return "list";

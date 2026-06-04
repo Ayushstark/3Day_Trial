@@ -111,10 +111,19 @@ async function main() {
 }
 
 async function safeEvaluatePrompt(item) {
-  try {
-    return await evaluatePrompt(item);
-  } catch (error) {
-    return {
+  let lastFailure;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await evaluatePrompt(item);
+      return { ...result, retryCount: attempt };
+    } catch (error) {
+      lastFailure = error;
+      await wait(1500);
+    }
+  }
+
+  return {
       id: item.id,
       category: item.category,
       prompt: item.prompt,
@@ -133,13 +142,12 @@ async function safeEvaluatePrompt(item) {
       assumptions: [],
       validationErrorCount: 0,
       validationErrorCodes: [],
-      failureMessage: error instanceof Error ? error.message : String(error),
+      failureMessage: lastFailure instanceof Error ? lastFailure.message : String(lastFailure),
       entityCount: 0,
       pageCount: 0,
       endpointCount: 0,
       workflowCount: 0
-    };
-  }
+  };
 }
 
 async function evaluatePrompt(item) {
@@ -200,17 +208,11 @@ async function safeRunMalformedRepairChecks() {
 }
 
 async function runMalformedRepairChecks() {
-  const created = await postJson("/api/generate", {
-    prompt:
-      "Build a CRM for a real estate agency. Agents manage leads, properties, and deals. WhatsApp notifications when a deal closes."
-  });
-  const runPromise = postJson(`/api/generate/${created.jobId}/run`, {});
-  await pollJob(created.jobId);
-  await runPromise.catch(() => undefined);
+  const job = await createCompletedRepairSeedJob();
 
   const checks = [];
   for (const fixture of malformedRepairFixtures) {
-    const repaired = await postJson(`/api/generate/${created.jobId}/repair`, fixture);
+    const repaired = await postJson(`/api/generate/${job.id}/repair`, fixture);
     checks.push({
       stage: fixture.stage,
       errorHint: fixture.errorHint,
@@ -222,6 +224,27 @@ async function runMalformedRepairChecks() {
   }
 
   return checks;
+}
+
+async function createCompletedRepairSeedJob() {
+  const seedPrompts = [
+    "Task manager, but make it smart.",
+    "Build a CRM for a real estate agency. Agents manage leads, properties, and deals. WhatsApp notifications when a deal closes.",
+    "An app."
+  ];
+
+  for (const prompt of seedPrompts) {
+    const created = await postJson("/api/generate", { prompt });
+    const runPromise = postJson(`/api/generate/${created.jobId}/run`, {});
+    const job = await pollJob(created.jobId);
+    await runPromise.catch(() => undefined);
+
+    if (job.dataSchema && job.appSpec) {
+      return job;
+    }
+  }
+
+  throw new Error("Unable to create a completed seed job for malformed repair checks");
 }
 
 async function writeEvaluationOutput(startedAt, promptResults, malformedRepairChecks, summary = summarize(promptResults, malformedRepairChecks)) {
