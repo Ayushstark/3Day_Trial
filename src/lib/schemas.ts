@@ -33,8 +33,8 @@ const integrationIds = new Set<string>(integrationIdSchema.options);
 export const appIntentSchema = z.object({
   appName: z.string().min(2),
   appType: z.preprocess(normalizeAppType, appTypeSchema),
-  features: z.array(z.string().min(2)).min(1),
-  entities: z.array(z.string().min(2)).min(1),
+  features: z.preprocess(normalizeStringList, z.array(z.string().min(2)).min(1)),
+  entities: z.preprocess(normalizeStringList, z.array(z.string().min(2)).min(1)),
   integrations_requested: z.preprocess(
     (value) =>
       (Array.isArray(value) ? value : value ? [value] : [])
@@ -49,6 +49,24 @@ export const appIntentSchema = z.object({
   clarification_required: z.boolean().optional(),
   clarification_question: z.string().optional()
 });
+
+function normalizeStringList(value: unknown): string[] {
+  const items = Array.isArray(value) ? value : value ? [value] : [];
+
+  return items
+    .map((item) => {
+      if (typeof item === "string") {
+        return item;
+      }
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        const record = item as Record<string, unknown>;
+        return String(record.name ?? record.entity ?? record.feature ?? record.title ?? record.label ?? record.id ?? "");
+      }
+      return String(item ?? "");
+    })
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 function normalizeAppType(value: unknown): z.infer<typeof appTypeSchema> {
   const rawType = String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
@@ -125,16 +143,83 @@ export const relationSchema = z.preprocess((value) => {
   onDelete: z.enum(["cascade", "restrict", "setNull"])
 }));
 
-export const entitySchemaSchema = z.object({
+export const entitySchemaSchema = z.preprocess((value) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const entity = value as Record<string, unknown>;
+  const name = String(entity.name ?? entity.entity ?? entity.model ?? entity.table ?? entity.tableName ?? "Record");
+
+  return {
+    ...entity,
+    name,
+    tableName: entity.tableName ?? entity.table_name ?? toLocalSnakeCase(`${name}s`),
+    fields: normalizeObjectArray(entity.fields ?? entity.columns ?? entity.properties),
+    relations: normalizeObjectArray(entity.relations ?? entity.relationships ?? entity.associations)
+  };
+}, z.object({
   name: z.string().min(1),
   tableName: z.string().regex(/^[a-z][a-z0-9_]*$/),
   fields: z.array(entityFieldSchema).min(2),
   relations: z.array(relationSchema)
-});
+}));
 
-export const dataSchemaSchema = z.object({
+export const dataSchemaSchema = z.preprocess((value) => {
+  if (Array.isArray(value)) {
+    return { entities: value };
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  const nestedSchema = record.dataSchema ?? record.schema ?? record.output;
+  if (nestedSchema && typeof nestedSchema === "object" && !Array.isArray(nestedSchema)) {
+    const nested = nestedSchema as Record<string, unknown>;
+    if (nested.entities || nested.tables || nested.models) {
+      return {
+        ...record,
+        entities: normalizeObjectArray(nested.entities ?? nested.tables ?? nested.models)
+      };
+    }
+  }
+
+  return {
+    ...record,
+    entities: normalizeObjectArray(record.entities ?? record.tables ?? record.models)
+  };
+}, z.object({
   entities: z.array(entitySchemaSchema).min(1)
-});
+}));
+
+function normalizeObjectArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).map(([key, item]) => {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        return { name: key, ...item };
+      }
+      return { name: key, value: item };
+    });
+  }
+
+  return [];
+}
+
+function toLocalSnakeCase(value: string): string {
+  const normalized = value
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+
+  return /^[a-z]/.test(normalized) ? normalized : "records";
+}
 
 export const pageSchema = z.preprocess((value) => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
