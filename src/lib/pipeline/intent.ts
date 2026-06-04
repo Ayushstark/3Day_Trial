@@ -90,7 +90,54 @@ const entityNouns = [
   "attendees",
   "doctors",
   "patients",
-  "invoices"
+  "invoices",
+  "conversations",
+  "messages",
+  "posts",
+  "videos",
+  "games",
+  "game sessions",
+  "challenges",
+  "scores",
+  "leaderboard entries",
+  "wallets",
+  "transactions",
+  "payment methods",
+  "reviews",
+  "order items"
+];
+
+const capabilityHints: Array<{
+  signals: string[];
+  features: string[];
+  entities: string[];
+  assumptions?: string[];
+}> = [
+  {
+    signals: ["talk", "chat", "message", "conversation", "dm", "people can talk"],
+    features: ["real-time messaging", "conversation threads"],
+    entities: ["Conversation", "Message"]
+  },
+  {
+    signals: ["tiktok", "tik tok", "social", "feed", "short video", "video feed", "creator"],
+    features: ["social media feed", "short-form content"],
+    entities: ["Post", "Video"]
+  },
+  {
+    signals: ["shop", "shopping", "amazon", "marketplace", "cart", "checkout", "ecommerce", "e-commerce"],
+    features: ["shopping catalog", "checkout flow", "product reviews"],
+    entities: ["Product", "Order", "OrderItem", "Review"]
+  },
+  {
+    signals: ["bank", "wallet", "balance", "finance", "payment method", "transaction"],
+    features: ["wallet management", "payment method management", "transaction history"],
+    entities: ["Wallet", "Transaction", "PaymentMethod"]
+  },
+  {
+    signals: ["game", "games", "gaming", "play", "challenge", "leaderboard", "score"],
+    features: ["gameplay sessions", "challenges", "leaderboards"],
+    entities: ["Game", "GameSession", "Challenge", "Score", "LeaderboardEntry"]
+  }
 ];
 
 export function extractIntentDeterministic(prompt: string): AppIntent {
@@ -136,13 +183,46 @@ export function extractIntentDeterministic(prompt: string): AppIntent {
   const appName = inferAppName(prompt, typeConfig.type);
   const features = Array.from(new Set([...typeConfig.defaultFeatures, ...inferFeatures(normalized)]));
 
-  return appIntentSchema.parse({
+  return enrichIntentForPrompt(appIntentSchema.parse({
     appName,
     appType: typeConfig.type,
     features,
     entities,
     integrations_requested: integrations,
     assumptions
+  }), prompt);
+}
+
+export function enrichIntentForPrompt(intent: AppIntent, prompt: string): AppIntent {
+  const normalized = prompt.toLowerCase();
+  const features = new Set(intent.features);
+  const entities = new Set(intent.entities.map((entity) => normalizeEntityName(entity)));
+  const assumptions = new Set(intent.assumptions);
+
+  if (!entities.has("User")) {
+    entities.add("User");
+  }
+
+  for (const hint of capabilityHints) {
+    if (!hint.signals.some((signal) => normalized.includes(signal))) {
+      continue;
+    }
+
+    hint.features.forEach((feature) => features.add(feature));
+    hint.entities.forEach((entity) => entities.add(entity));
+    hint.assumptions?.forEach((assumption) => assumptions.add(assumption));
+  }
+
+  const matchedCapabilities = capabilityHints.filter((hint) => hint.signals.some((signal) => normalized.includes(signal))).length;
+  if (matchedCapabilities > 1) {
+    assumptions.add("Prompt blends multiple product domains, so each detected capability is modeled as a first-class module.");
+  }
+
+  return appIntentSchema.parse({
+    ...intent,
+    features: Array.from(features),
+    entities: Array.from(entities),
+    assumptions: Array.from(assumptions)
   });
 }
 
@@ -169,7 +249,15 @@ function inferAppName(prompt: string, appType: AppType): string {
     return "Event Management Platform";
   }
 
+  if ((lower.includes("social") || lower.includes("tiktok") || lower.includes("talk")) && (lower.includes("shop") || lower.includes("amazon"))) {
+    return "Social Marketplace";
+  }
+
   return `${titleCase(appType.replace(/_/g, " "))} App`;
+}
+
+function normalizeEntityName(entity: string): string {
+  return titleCase(singularize(entity).replace(/[_-]+/g, " ")).replace(/\s/g, "");
 }
 
 function inferFeatures(normalized: string): string[] {

@@ -133,7 +133,7 @@ export default function Home() {
                 className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
                 title="Run intent extraction"
               >
-                {isSubmitting ? <Loader2 className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 Generate
               </button>
             </div>
@@ -182,15 +182,7 @@ function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latest
           return (
             <div key={stage.id} className="flex items-center justify-between rounded-md border border-line px-3 py-2">
               <div className="flex items-center gap-2">
-                {status === "complete" ? (
-                  <CheckCircle2 className="h-4 w-4 text-accent" />
-                ) : status === "running" ? (
-                  <Loader2 className="h-4 w-4 text-warn" />
-                ) : status === "failed" ? (
-                  <AlertCircle className="h-4 w-4 text-danger" />
-                ) : (
-                  <span className="h-4 w-4 rounded-full border border-line" />
-                )}
+                <StageStatusIcon status={status} />
                 <span className="text-sm font-medium">{stage.label}</span>
               </div>
               <span className="text-xs text-muted">{job?.latencyByStage[stage.id] ? `${job.latencyByStage[stage.id]} ms` : status}</span>
@@ -201,6 +193,28 @@ function StageProgress({ job, latestEvent }: { job: GenerationJob | null; latest
       {latestEvent ? <p className="mt-4 text-xs text-muted">Latest event: {latestEvent.type}</p> : null}
     </aside>
   );
+}
+
+function StageStatusIcon({ status }: { status: GenerationJob["stages"][keyof GenerationJob["stages"]] }) {
+  if (status === "complete") {
+    return <CheckCircle2 className="h-4 w-4 text-accent" />;
+  }
+
+  if (status === "running") {
+    return (
+      <span
+        className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-warn"
+        aria-label="Stage running"
+        title="Stage running"
+      />
+    );
+  }
+
+  if (status === "failed") {
+    return <AlertCircle className="h-4 w-4 text-danger" />;
+  }
+
+  return <span className="h-4 w-4 rounded-full border border-line" aria-label="Stage pending" title="Stage pending" />;
 }
 
 function IntentPanel({ intent }: { intent?: AppIntent }) {

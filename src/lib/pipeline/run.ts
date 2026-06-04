@@ -4,12 +4,13 @@ import { buildAppSpecPrompt, buildIntentPrompt, buildSchemaPrompt } from "@/lib/
 import { estimateCost, MODEL_ROUTES, type StageRouteConfig } from "@/lib/ai/routing";
 import { getJob, pushEvent, setStage, updateJob } from "@/lib/jobs/store";
 import { generateAppSpecDeterministic } from "@/lib/pipeline/appSpec";
-import { extractIntentDeterministic } from "@/lib/pipeline/intent";
+import { enrichIntentForPrompt, extractIntentDeterministic } from "@/lib/pipeline/intent";
 import { generateDataSchemaDeterministic } from "@/lib/pipeline/schema";
 import { repairAppSpec } from "@/lib/repair/appSpecRepair";
 import { repairDataSchema } from "@/lib/repair/schemaRepair";
 import { appIntentSchema, appSpecSchema, dataSchemaSchema } from "@/lib/schemas";
 import type { AppIntent, AppSpec, DataSchema, ValidationError } from "@/lib/types";
+import { toSnakeCase } from "@/lib/utils/text";
 import { validateAppSpec, validateDataSchema, validateIntent } from "@/lib/validation/validate";
 
 export async function runIntentStage(jobId: string): Promise<void> {
@@ -300,7 +301,7 @@ function resolveIntentOutput(output: unknown, route: StageRouteConfig, prompt: s
     throw new Error(`AI intent output failed validation: ${details}`);
   }
 
-  return sanitizeIntentIntegrations(result.data, prompt);
+  return enrichIntentForPrompt(sanitizeIntentIntegrations(result.data, prompt), prompt);
 }
 
 const explicitIntegrationSignals: Record<AppIntent["integrations_requested"][number], string[]> = {
@@ -341,7 +342,7 @@ function resolveSchemaOutput(output: unknown, route: StageRouteConfig, intent: A
     throw new Error(`AI schema output failed validation: ${details}`);
   }
 
-  return result.data;
+  return ensureSchemaCoversIntent(result.data, intent);
 }
 
 function resolveAppSpecOutput(output: unknown, route: StageRouteConfig, intent: AppIntent, dataSchema: DataSchema): AppSpec {
@@ -356,7 +357,7 @@ function resolveAppSpecOutput(output: unknown, route: StageRouteConfig, intent: 
     throw new Error(`AI AppSpec output failed validation: ${details}`);
   }
 
-  return shapeResult.data;
+  return ensureAppSpecCoversSchema(shapeResult.data, dataSchema);
 }
 
 function hasReadyAiRoute(route: StageRouteConfig): boolean {
@@ -396,6 +397,150 @@ function validateAndRepairAppSpec(appSpec: AppSpec, dataSchema: DataSchema): {
     validationErrors: remainingErrors,
     repairLog: repaired.repairLog
   };
+}
+
+function ensureSchemaCoversIntent(schema: DataSchema, intent: AppIntent): DataSchema {
+  const supplement = generateDataSchemaDeterministic(intent);
+  const entities = schema.entities.map((entity) => ({ ...entity, fields: [...entity.fields], relations: [...entity.relations] }));
+  const entityMap = new Map(entities.map((entity) => [entity.name, entity]));
+
+  for (const supplementEntity of supplement.entities) {
+    const existing = entityMap.get(supplementEntity.name);
+    if (!existing) {
+      const clone = {
+        ...supplementEntity,
+        fields: [...supplementEntity.fields],
+        relations: [...supplementEntity.relations]
+      };
+      entities.push(clone);
+      entityMap.set(clone.name, clone);
+      continue;
+    }
+
+    for (const field of supplementEntity.fields) {
+      if (!existing.fields.some((candidate) => candidate.name === field.name)) {
+        existing.fields.push(field);
+      }
+    }
+
+    for (const relation of supplementEntity.relations) {
+      if (!existing.relations.some((candidate) => candidate.target === relation.target && candidate.foreignKey === relation.foreignKey)) {
+        existing.relations.push(relation);
+      }
+    }
+  }
+
+  const hasOrderItem = entityMap.has("OrderItem");
+  if (hasOrderItem) {
+    for (const entity of entities) {
+      entity.relations = entity.relations.filter(
+        (relation) =>
+          !(
+            (entity.name === "Product" && relation.target === "Order") ||
+            (entity.name === "Order" && relation.target === "Product")
+          )
+      );
+    }
+  }
+
+  return dataSchemaSchema.parse({ entities });
+}
+
+function ensureAppSpecCoversSchema(appSpec: AppSpec, dataSchema: DataSchema): AppSpec {
+  const pages = [...appSpec.pages];
+  const apiEndpoints = [...appSpec.apiEndpoints];
+  const roles = appSpec.authRules.roles.length > 0 ? appSpec.authRules.roles : ["admin", "manager", "member"];
+  const permissions = { ...appSpec.authRules.permissions };
+
+  for (const entity of dataSchema.entities) {
+    const baseRoute = `/${toSnakeCase(entity.name).replace(/_/g, "-")}`;
+    if (!pages.some((page) => page.boundEntity === entity.name)) {
+      pages.push({
+        name: featurePageName(entity.name),
+        route: baseRoute,
+        layout: inferFeatureLayout(entity.name),
+        boundEntity: entity.name,
+        components: inferFeatureComponents(entity.name)
+      });
+    }
+
+    const baseApiPath = `/api/${toSnakeCase(entity.name).replace(/_/g, "-")}`;
+    const existingMethods = new Set(apiEndpoints.filter((endpoint) => endpoint.boundEntity === entity.name).map((endpoint) => endpoint.method));
+    for (const method of ["GET", "POST", "PATCH", "DELETE"] as const) {
+      if (!existingMethods.has(method)) {
+        apiEndpoints.push({
+          path: method === "GET" || method === "POST" ? baseApiPath : `${baseApiPath}/:id`,
+          method,
+          handlerDescription: `${method} handler for ${entity.name} records.`,
+          boundEntity: entity.name,
+          authRequired: true,
+          rateLimit: true
+        });
+      }
+    }
+  }
+
+  for (const role of roles) {
+    permissions[role] = permissions[role] ?? {};
+    for (const entity of dataSchema.entities) {
+      permissions[role][entity.name] = permissions[role][entity.name] ?? {
+        read: true,
+        write: role !== "member" || !["User", "Wallet", "Transaction", "PaymentMethod"].includes(entity.name),
+        delete: role === "admin"
+      };
+    }
+  }
+
+  return appSpecSchema.parse({
+    ...appSpec,
+    pages,
+    apiEndpoints,
+    authRules: { roles, permissions }
+  });
+}
+
+function featurePageName(entityName: string): string {
+  const names: Record<string, string> = {
+    Conversation: "Messages",
+    Message: "Message Thread",
+    Post: "Social Feed",
+    Video: "Short Video Feed",
+    Product: "Product Catalog",
+    OrderItem: "Cart Items",
+    Wallet: "Wallet",
+    Transaction: "Transaction History",
+    Game: "Game Lobby",
+    GameSession: "Game Sessions",
+    Challenge: "Challenges",
+    Score: "Scores",
+    LeaderboardEntry: "Leaderboard"
+  };
+
+  return names[entityName] ?? `${entityName} Workspace`;
+}
+
+function inferFeatureLayout(entityName: string): AppSpec["pages"][number]["layout"] {
+  if (["Post", "Video", "Wallet", "Transaction", "Game", "Challenge", "LeaderboardEntry"].includes(entityName)) {
+    return "dashboard";
+  }
+
+  if (["User", "Conversation", "Message"].includes(entityName)) {
+    return "detail";
+  }
+
+  return "list";
+}
+
+function inferFeatureComponents(entityName: string): AppSpec["pages"][number]["components"] {
+  if (["Post", "Video", "Wallet", "Transaction", "Game", "Challenge", "LeaderboardEntry"].includes(entityName)) {
+    return ["card", "chart", "table"];
+  }
+
+  if (["Conversation", "Message"].includes(entityName)) {
+    return ["card", "form"];
+  }
+
+  return ["table", "form"];
 }
 
 function estimateTokens(value: string): number {

@@ -62,7 +62,84 @@ const entityFieldHints: Record<string, FieldTemplate[]> = {
   Product: [
     { name: "name", type: "string" },
     { name: "sku", type: "string", isUnique: true },
-    { name: "price", type: "number", nullable: true }
+    { name: "description", type: "text", nullable: true },
+    { name: "price", type: "number", nullable: true },
+    { name: "stockQuantity", type: "number", nullable: true },
+    { name: "imageUrl", type: "string", nullable: true }
+  ],
+  OrderItem: [
+    { name: "quantity", type: "number" },
+    { name: "unitPrice", type: "number" },
+    { name: "lineTotal", type: "number" }
+  ],
+  Review: [
+    { name: "rating", type: "number" },
+    { name: "comment", type: "text", nullable: true }
+  ],
+  Conversation: [
+    { name: "title", type: "string", nullable: true },
+    { name: "conversationType", type: "enum" },
+    { name: "lastMessageAt", type: "datetime", nullable: true }
+  ],
+  Message: [
+    { name: "body", type: "text" },
+    { name: "sentAt", type: "datetime" },
+    { name: "readAt", type: "datetime", nullable: true }
+  ],
+  Post: [
+    { name: "caption", type: "text", nullable: true },
+    { name: "mediaUrl", type: "string", nullable: true },
+    { name: "visibility", type: "enum" },
+    { name: "publishedAt", type: "datetime", nullable: true }
+  ],
+  Video: [
+    { name: "title", type: "string", nullable: true },
+    { name: "videoUrl", type: "string" },
+    { name: "durationSeconds", type: "number", nullable: true },
+    { name: "viewCount", type: "number" }
+  ],
+  Game: [
+    { name: "name", type: "string" },
+    { name: "description", type: "text", nullable: true },
+    { name: "genre", type: "string", nullable: true },
+    { name: "isActive", type: "boolean" }
+  ],
+  GameSession: [
+    { name: "startedAt", type: "datetime" },
+    { name: "endedAt", type: "datetime", nullable: true },
+    { name: "status", type: "enum" }
+  ],
+  Challenge: [
+    { name: "name", type: "string" },
+    { name: "description", type: "text", nullable: true },
+    { name: "startsAt", type: "datetime", nullable: true },
+    { name: "endsAt", type: "datetime", nullable: true },
+    { name: "status", type: "enum" }
+  ],
+  Score: [
+    { name: "points", type: "number" },
+    { name: "achievedAt", type: "datetime" }
+  ],
+  LeaderboardEntry: [
+    { name: "rank", type: "number" },
+    { name: "points", type: "number" },
+    { name: "period", type: "string", nullable: true }
+  ],
+  Wallet: [
+    { name: "balance", type: "number" },
+    { name: "currency", type: "string" },
+    { name: "status", type: "enum" }
+  ],
+  Transaction: [
+    { name: "amount", type: "number" },
+    { name: "transactionType", type: "enum" },
+    { name: "status", type: "enum" },
+    { name: "processedAt", type: "datetime", nullable: true }
+  ],
+  PaymentMethod: [
+    { name: "type", type: "enum" },
+    { name: "details", type: "json" },
+    { name: "isDefault", type: "boolean" }
   ],
   StockMovement: [
     { name: "quantity", type: "number" },
@@ -137,8 +214,27 @@ const relationPairs: Array<{ parent: string; child: string; foreignKey?: string;
   { parent: "Product", child: "StockMovement" },
   { parent: "Supplier", child: "Product", onDelete: "setNull" },
   { parent: "Customer", child: "Order" },
+  { parent: "User", child: "Order" },
   { parent: "Order", child: "Payment" },
-  { parent: "Product", child: "Order", onDelete: "restrict" },
+  { parent: "Order", child: "OrderItem", onDelete: "cascade" },
+  { parent: "Product", child: "OrderItem", onDelete: "restrict" },
+  { parent: "User", child: "Review", onDelete: "cascade" },
+  { parent: "Product", child: "Review", onDelete: "cascade" },
+  { parent: "User", child: "Conversation", onDelete: "cascade" },
+  { parent: "Conversation", child: "Message", onDelete: "cascade" },
+  { parent: "User", child: "Message", foreignKey: "senderId", onDelete: "cascade" },
+  { parent: "User", child: "Post", foreignKey: "authorId", onDelete: "cascade" },
+  { parent: "Post", child: "Video", onDelete: "cascade" },
+  { parent: "User", child: "Wallet", onDelete: "cascade" },
+  { parent: "Wallet", child: "Transaction", onDelete: "cascade" },
+  { parent: "User", child: "PaymentMethod", onDelete: "cascade" },
+  { parent: "Game", child: "GameSession", onDelete: "cascade" },
+  { parent: "User", child: "GameSession", foreignKey: "playerId", onDelete: "cascade" },
+  { parent: "Game", child: "Challenge", onDelete: "cascade" },
+  { parent: "Challenge", child: "Score", onDelete: "cascade" },
+  { parent: "User", child: "Score", foreignKey: "playerId", onDelete: "cascade" },
+  { parent: "Challenge", child: "LeaderboardEntry", onDelete: "cascade" },
+  { parent: "User", child: "LeaderboardEntry", foreignKey: "playerId", onDelete: "cascade" },
   { parent: "Employee", child: "LeaveRequest" },
   { parent: "Employee", child: "PerformanceReview" },
   { parent: "Organizer", child: "Event" },
